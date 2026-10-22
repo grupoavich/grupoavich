@@ -1,0 +1,10 @@
+{
+  "functions": { "api/*.js": { "maxDuration": 30 } },
+  "rewrites": [ { "source": "/admin", "destination": "/admin/index.html" } ],
+  "headers": [
+    { "source": "/admin/(.*)", "headers": [
+      { "key": "X-Frame-Options", "value": "DENY" },
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Cache-Control", "value": "no-store" } ] }
+  ]
+}
