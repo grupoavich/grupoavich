@@ -119,7 +119,15 @@ function mostrar(logueado){ $('login').style.display = logueado?'none':'block'; 
 function cargar(){
   return api('lista').then(function(r){
     if(r.estado===401){ mostrar(false); return; }
-    mostrar(true); CAT = r.json; pintar();
+    mostrar(true);
+    if(r.estado!==200 || !Array.isArray(r.json.items)){
+      CAT = { version:0, items:[], avisos:[], release:null };
+      pintar();
+      aviso('El servidor no pudo leer el catálogo' + (r.json && r.json.detalle ? ': ' + r.json.detalle : ' (HTTP ' + r.estado + ')') + '. Pulsa «Diagnóstico» arriba a la derecha.', 'err');
+      $('btnDiag').click();
+      return;
+    }
+    CAT = r.json; pintar();
   });
 }
 function pintar(){
