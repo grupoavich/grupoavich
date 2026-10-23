@@ -39,8 +39,13 @@
 </div>
 
 <div id="app" style="display:none">
-<header><h1>Biblioteca en la nube · <span id="verCat" style="color:var(--dim);font-weight:400"></span></h1><button class="sec" id="btnSalir">Salir</button></header>
+<header><h1>Biblioteca en la nube · <span id="verCat" style="color:var(--dim);font-weight:400"></span></h1><div style="display:flex;gap:8px"><button class="sec" id="btnDiag">Diagnóstico</button><button class="sec" id="btnSalir">Salir</button></div></header>
 <main>
+  <div class="card" id="diagCard" style="display:none">
+    <h2>Diagnóstico</h2>
+    <div id="diagTxt" style="white-space:pre-wrap;font-size:13px;line-height:1.7"></div>
+  </div>
+
   <div class="card">
     <h2 id="tituloForm">Agregar contenido</h2>
     <div class="row">
@@ -114,7 +119,15 @@ function mostrar(logueado){ $('login').style.display = logueado?'none':'block'; 
 function cargar(){
   return api('lista').then(function(r){
     if(r.estado===401){ mostrar(false); return; }
-    mostrar(true); CAT = r.json; pintar();
+    mostrar(true);
+    if(r.estado!==200 || !Array.isArray(r.json.items)){
+      CAT = { version:0, items:[], avisos:[], release:null };
+      pintar();
+      aviso('El servidor no pudo leer el catálogo' + (r.json && r.json.detalle ? ': ' + r.json.detalle : ' (HTTP ' + r.estado + ')') + '. Pulsa «Diagnóstico» arriba a la derecha.', 'err');
+      $('btnDiag').click();
+      return;
+    }
+    CAT = r.json; pintar();
   });
 }
 function pintar(){
@@ -215,9 +228,9 @@ function subirArchivo(id, archivo, nombre, blob){
   return api('subida',{id:id,archivo:archivo,nombre:nombre}).then(function(r){
     if(r.estado!==200) throw new Error('No se pudo preparar la subida de '+nombre);
     return fetch(r.json.url,{method:'PUT',body:blob}).then(function(p){
-      if(!p.ok) throw new Error('Falló la subida de '+nombre+' (¿configuraste el CORS del bucket?)');
+      if(!p.ok) throw new Error('Falló la subida de '+nombre+' (HTTP '+p.status+'). Pulsa «Diagnóstico» para ver la causa.');
       return { key: r.json.key };
-    });
+    }, function(){ throw new Error('No se pudo subir '+nombre+' al almacenamiento (Failed to fetch). Pulsa «Diagnóstico» arriba a la derecha para ver la causa.'); });
   });
 }
 $('btnPublicar').onclick = function(){
@@ -266,7 +279,7 @@ $('btnRelease').onclick = function(){
   var nombre = f.name.replace(/[^A-Za-z0-9._-]/g,'_');
   api('subida_release',{version:ver,nombre:nombre}).then(function(r){
     if(r.estado!==200) throw new Error('No se pudo preparar la subida');
-    return fetch(r.json.url,{method:'PUT',body:f}).then(function(p){ if(!p.ok) throw new Error('Falló la subida (¿CORS del bucket?)'); return r.json.key; });
+    return fetch(r.json.url,{method:'PUT',body:f}).then(function(p){ if(!p.ok) throw new Error('Falló la subida (HTTP '+p.status+'). Pulsa «Diagnóstico» para ver la causa.'); return r.json.key; }, function(){ throw new Error('No se pudo subir el archivo al almacenamiento (Failed to fetch). Pulsa «Diagnóstico» arriba a la derecha para ver la causa.'); });
   }).then(function(key){
     return api('publicar_release',{version:ver,notas:$('r-notas').value,obligatoria:$('r-obl').checked,key:key});
   }).then(function(r){
@@ -281,6 +294,30 @@ $('btnRelease').onclick = function(){
 $('btnQuitarRelease').onclick = function(){
   if(!confirm('¿Quitar la actualización publicada? Los clientes dejarán de verla.')) return;
   api('quitar_release',{}).then(function(){ aviso('Quitada'); cargar(); });
+};
+
+// Diagnóstico: revisa variables, conexión del servidor con R2, la firma y el CORS desde ESTE navegador
+$('btnDiag').onclick = function(){
+  var card = $('diagCard'), out = $('diagTxt'); card.style.display = 'block'; out.textContent = 'Revisando…'; card.scrollIntoView();
+  var lineas = [];
+  function ok(t){ lineas.push('✅ ' + t); } function mal(t){ lineas.push('❌ ' + t); } function nota(t){ lineas.push('⚠️ ' + t); }
+  api('diagnostico', {}).then(function(r){
+    if(r.estado !== 200){ out.textContent = '❌ No se pudo ejecutar el diagnóstico (' + r.estado + ').'; return; }
+    var d = r.json;
+    if(d.faltan.length) mal('Faltan variables de entorno en Vercel: ' + d.faltan.join(', ') + '. Agrégalas en Settings → Environment Variables y haz Redeploy.'); else ok('Variables de entorno: todas están.');
+    d.avisos.forEach(function(a){ nota(a); });
+    if(d.firma.ok) ok('Clave de firma: válida.'); else mal('SIGNING_PRIVATE_KEY no sirve' + (d.firma.detalle ? ' (' + d.firma.detalle + ')' : '') + '. Debe ser el contenido COMPLETO de SIGNING_PRIVATE_KEY-una-linea.txt.');
+    if(d.almacen.ok) ok('El servidor sí puede escribir y leer en el almacenamiento (' + d.almacenamiento.toUpperCase() + ').');
+    else mal('El servidor NO puede usar el almacenamiento: ' + d.almacen.detalle + '\nRevisa R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY y R2_BUCKET (y que el token tenga permiso Object Read & Write sobre ese bucket).');
+    if(!d.url){ lineas.push('— No se pudo probar el CORS porque falta lo anterior.'); out.textContent = lineas.join('\n'); return; }
+    out.textContent = lineas.join('\n') + '\n⏳ Probando subida desde este navegador (CORS)…';
+    return fetch(d.url, { method:'PUT', body:'ok' }).then(function(p){
+      if(p.ok) ok('Subida desde el navegador: funciona (CORS bien). Ya puedes publicar contenido.');
+      else mal('R2 rechazó la subida del navegador (HTTP ' + p.status + '). Revisa que el token tenga permiso Object Read & Write sobre el bucket.');
+    }).catch(function(){
+      mal('El navegador no pudo subir a R2 («Failed to fetch»): casi seguro es el CORS del bucket.\nEn Cloudflare → R2 → tu bucket → Settings → CORS Policy debe haber una regla con\nAllowedOrigins: ["' + location.origin + '"]  (exacto, con https y sin "/" al final)\nAllowedMethods: ["PUT","GET"]   AllowedHeaders: ["*"]\nGuarda, espera un minuto y vuelve a pulsar Diagnóstico.');
+    }).then(function(){ out.textContent = lineas.join('\n'); });
+  }).catch(function(){ out.textContent = '❌ No se pudo conectar con el servidor.'; });
 };
 tipoCambio(); cargar();
 </script>
