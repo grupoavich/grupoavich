@@ -22,6 +22,7 @@ const extDe = (nombre) => { const e = nombre.toLowerCase().split('.').pop(); ret
 
 module.exports = async (req, res) => {
   const accion = new URL(req.url, 'http://x').searchParams.get('accion');
+  let autenticado = false;
   try {
     if (accion === 'login') {
       if (req.method !== 'POST') return json(res, 405, { error: 'metodo' });
@@ -33,7 +34,11 @@ module.exports = async (req, res) => {
     if (accion === 'logout') return json(res, 200, { ok: true }, { 'Set-Cookie': ses.cookieBorrar() });
 
     if (!ses.autenticado(req)) return json(res, 401, { error: 'sesion' });
-    const st = getStorage();
+    autenticado = true;
+    // Si el almacenamiento no está bien configurado NO se cae todo: el diagnóstico debe poder explicarlo.
+    let st = null, stError = null;
+    try { st = getStorage(); } catch (e) { stError = e; }
+    if (!st && accion !== 'diagnostico') return json(res, 500, { error: 'almacenamiento', detalle: String(stError && stError.message).slice(0, 220) });
 
     if (accion === 'lista') {
       const c = await leer();
@@ -42,6 +47,30 @@ module.exports = async (req, res) => {
     }
     if (req.method !== 'POST' || !String(req.headers['content-type'] || '').includes('application/json')) return json(res, 400, { error: 'formato' });
     const b = await leerJSON(req);
+
+    // Diagnóstico: dice qué falta o qué está mal configurado (sin mostrar ningún secreto)
+    if (accion === 'diagnostico') {
+      const env = process.env, local = String(env.STORAGE || 'r2').toLowerCase() === 'local';
+      const nombres = ['LS_STORE_ID', 'SIGNING_PRIVATE_KEY', 'ADMIN_PASSWORD', 'SESSION_SECRET'].concat(local ? [] : ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET']);
+      const faltan = nombres.filter((k) => !String(env[k] || '').trim());
+      const avisos = [];
+      if (!local && env.R2_ACCOUNT_ID && !/^[0-9a-f]{32}$/i.test(String(env.R2_ACCOUNT_ID))) avisos.push('R2_ACCOUNT_ID no parece un Account ID (deben ser 32 letras y números, sin espacios ni comillas).');
+      if (!local && env.R2_BUCKET && String(env.R2_BUCKET) !== String(env.R2_BUCKET).trim()) avisos.push('R2_BUCKET tiene espacios al inicio o al final.');
+      if (env.LS_STORE_ID && !/^\d+$/.test(String(env.LS_STORE_ID).trim())) avisos.push('LS_STORE_ID debe ser solo el número de tu tienda (sin #).');
+      let almacen = { ok: false, detalle: 'No se probó' };
+      if (!st) almacen = { ok: false, detalle: String(stError && stError.message).slice(0, 220) };
+      else try {
+        await st.put('diagnostico/servidor.txt', Buffer.from('ok'), 'text/plain');
+        const g = await st.get('diagnostico/servidor.txt');
+        await st.del('diagnostico/servidor.txt');
+        almacen = g && g.toString() === 'ok' ? { ok: true } : { ok: false, detalle: 'Se escribió pero no se pudo leer' };
+      } catch (e) { almacen = { ok: false, detalle: String(e.name + ': ' + e.message).replace(/[\u0000-\u001f]/g, ' ').slice(0, 220) }; }
+      let firma = { ok: false };
+      try { require('../lib/firma').firmar('prueba'); firma = { ok: true }; } catch (e) { firma = { ok: false, detalle: String(e.message).slice(0, 120) }; }
+      let url = null;
+      if (st) try { url = await st.presignPut('diagnostico/navegador.txt', 'text/plain', 300); } catch (e) { /* ya se verá en almacen */ }
+      return json(res, 200, { faltan, avisos, almacen, firma, url, almacenamiento: local ? 'local' : 'r2' });
+    }
 
     if (accion === 'subida') {                       // URL firmada para que el navegador suba el archivo directo a R2
       if (!idValido(b.id) || !ARCHIVOS.includes(b.archivo) || !nombreArchivoSeguro(b.nombre)) return json(res, 400, { error: 'datos' });
@@ -155,6 +184,6 @@ module.exports = async (req, res) => {
     return json(res, 400, { error: 'accion' });
   } catch (e) {
     console.error('admin:', e.message);
-    return json(res, 500, { error: 'servidor' });
+    return json(res, 500, { error: 'servidor', detalle: autenticado ? String(e.message).slice(0, 220) : undefined });
   }
 };
