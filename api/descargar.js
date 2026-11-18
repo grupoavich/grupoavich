@@ -3,7 +3,7 @@
 // Devuelve URLs temporales (5 min) para bajar directo de R2. Lo bloqueado exige licencia válida.
 const { leerJSON, json, ip } = require('../lib/http');
 const { permitir } = require('../lib/limite');
-const { validar } = require('../lib/licencia');
+const { validarCliente } = require('../lib/licencia');
 const { leer, idValido, ARCHIVOS } = require('../lib/catalogo');
 const { getStorage } = require('../lib/storage');
 
@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
       const f = it && it.archivos && it.archivos[archivo];
       if (!it || !f) { out[id] = { error: 'no_existe' }; continue; }
       if (archivo === 'principal' && it.acceso === 'licencia') {
-        if (!lic) lic = await validar(b.licencia, b.instancia);
+        if (!lic) lic = await validarCliente(b);
         if (!lic.ok) { out[id] = { error: 'requiere_licencia', motivo: lic.motivo }; continue; }
       }
       out[id] = { url: await st.presignGet(f.key, 300), sha256: f.sha256, bytes: f.bytes, nombre: f.nombre };
