@@ -224,12 +224,18 @@ $('f-principal').onchange = function(){
   miniaturaDesdeSkm(f).then(function(b){ MINI_GEN = b; $('previa').src = URL.createObjectURL(b); $('previa').style.display='block'; }).catch(function(e){ aviso(e.message,'err'); });
 };
 
+// Huella SHA-256 calculada aquí (en tu navegador) para que el servidor no gaste CPU con archivos grandes.
+function sha256Hex(blob){
+  return blob.arrayBuffer().then(function(ab){ return crypto.subtle.digest('SHA-256', ab); }).then(function(d){
+    return Array.prototype.map.call(new Uint8Array(d), function(x){ return ('0'+x.toString(16)).slice(-2); }).join('');
+  });
+}
 function subirArchivo(id, archivo, nombre, blob){
   return api('subida',{id:id,archivo:archivo,nombre:nombre}).then(function(r){
     if(r.estado!==200) throw new Error('No se pudo preparar la subida de '+nombre);
     return fetch(r.json.url,{method:'PUT',body:blob}).then(function(p){
       if(!p.ok) throw new Error('Falló la subida de '+nombre+' (HTTP '+p.status+'). Pulsa «Diagnóstico» para ver la causa.');
-      return { key: r.json.key };
+      return sha256Hex(blob).then(function(h){ return { key: r.json.key, sha256: h }; });
     }, function(){ throw new Error('No se pudo subir '+nombre+' al almacenamiento (Failed to fetch). Pulsa «Diagnóstico» arriba a la derecha para ver la causa.'); });
   });
 }
@@ -276,12 +282,12 @@ $('btnRelease').onclick = function(){
   if(!/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ver)) return aviso('La versión debe ser como 2.2.1','err');
   if(!f) return aviso('Falta el archivo .rbz','err');
   var btn = $('btnRelease'); btn.disabled = true; btn.textContent = 'Subiendo…';
-  var nombre = f.name.replace(/[^A-Za-z0-9._-]/g,'_');
+  var nombre = f.name.replace(/[^A-Za-z0-9._-]/g,'_'), hashRel = '';
   api('subida_release',{version:ver,nombre:nombre}).then(function(r){
     if(r.estado!==200) throw new Error('No se pudo preparar la subida');
-    return fetch(r.json.url,{method:'PUT',body:f}).then(function(p){ if(!p.ok) throw new Error('Falló la subida (HTTP '+p.status+'). Pulsa «Diagnóstico» para ver la causa.'); return r.json.key; }, function(){ throw new Error('No se pudo subir el archivo al almacenamiento (Failed to fetch). Pulsa «Diagnóstico» arriba a la derecha para ver la causa.'); });
+    return fetch(r.json.url,{method:'PUT',body:f}).then(function(p){ if(!p.ok) throw new Error('Falló la subida (HTTP '+p.status+'). Pulsa «Diagnóstico» para ver la causa.'); return sha256Hex(f).then(function(h){ hashRel = h; return r.json.key; }); }, function(){ throw new Error('No se pudo subir el archivo al almacenamiento (Failed to fetch). Pulsa «Diagnóstico» arriba a la derecha para ver la causa.'); });
   }).then(function(key){
-    return api('publicar_release',{version:ver,notas:$('r-notas').value,obligatoria:$('r-obl').checked,key:key});
+    return api('publicar_release',{version:ver,notas:$('r-notas').value,obligatoria:$('r-obl').checked,key:key,sha256:hashRel});
   }).then(function(r){
     if(r.estado!==200){
       var m = { rbz_version_distinta:'La versión que escribiste no coincide con PLUGIN_VERSION del .rbz ('+((r.json.detalle||'').split(':')[1]||'?')+')', rbz_sin_cargador:'El .rbz no trae "Avich sistemas.rb"', rbz_archivos_ajenos:'El .rbz trae archivos fuera de la carpeta de AVICH', rbz_invalido:'El archivo no es un .rbz válido', rbz_grande:'El .rbz pesa más de 80 MB' };

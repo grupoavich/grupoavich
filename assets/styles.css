@@ -268,3 +268,5 @@ footer{background:var(--black);border-top:3px solid var(--red);padding:3.5rem 2.
   .sub{position:static;box-shadow:none;border:none;border-radius:0;background:var(--gray1);padding:0}
   .sub a{padding:.85rem 1.25rem .85rem 2rem}
 }
+
+.footer-copy a{color:rgba(255,255,255,.4);text-decoration:none}.footer-copy a:hover{color:var(--red)}

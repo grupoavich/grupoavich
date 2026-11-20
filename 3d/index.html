@@ -3,57 +3,708 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AVICH 3D — Próximamente | Grupo AVICH</title>
-<meta name="description" content="AVICH 3D, la nueva extensión avanzada de Grupo AVICH para SketchUp. Próximamente.">
+<title>AVICH 3D — Diseña, fabrica y arma muebles en SketchUp | Grupo AVICH</title>
+<meta name="description" content="AVICH 3D es la extensión profesional de SketchUp para carpintería y muebles: genera cocinas y closets, arma estructuras en un clic, cajones, puertas, correderas, despiece y planos. Ya disponible.">
+<meta name="keywords" content="SketchUp carpintería, extensión muebles SketchUp, despiece melamina, generador de cocinas, closets SketchUp, CNC melamina, AVICH 3D">
 <link rel="icon" type="image/webp" href="../assets/logo.webp">
 <link rel="apple-touch-icon" href="../assets/logo.webp">
 <link rel="canonical" href="https://grupoavich.vercel.app/3d/">
-<meta name="theme-color" content="#D01010">
+<meta name="theme-color" content="#6C3BAA">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_ES">
 <meta property="og:site_name" content="Grupo AVICH">
-<meta property="og:title" content="AVICH 3D — Próximamente | Grupo AVICH">
-<meta property="og:description" content="AVICH 3D, la nueva extensión avanzada de Grupo AVICH para SketchUp. Próximamente.">
+<meta property="og:title" content="AVICH 3D — Diseña, fabrica y arma muebles en SketchUp">
+<meta property="og:description" content="La extensión profesional de SketchUp para carpintería: genera cocinas y closets, arma estructuras en un clic, cajones, puertas, correderas, despiece y planos. Ya disponible.">
 <meta property="og:url" content="https://grupoavich.vercel.app/3d/">
-<meta property="og:image" content="https://grupoavich.vercel.app/assets/logo.webp">
+<meta property="og:image" content="https://grupoavich.vercel.app/assets/captura-3d-generador.webp">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@GrupoAvich">
-<meta name="twitter:title" content="AVICH 3D — Próximamente | Grupo AVICH">
-<meta name="twitter:description" content="AVICH 3D, la nueva extensión avanzada de Grupo AVICH para SketchUp. Próximamente.">
-<meta name="twitter:image" content="https://grupoavich.vercel.app/assets/logo.webp">
+<meta name="twitter:title" content="AVICH 3D — Diseña, fabrica y arma muebles en SketchUp">
+<meta name="twitter:description" content="Extensión profesional de SketchUp para carpintería y muebles. Ya disponible.">
+<meta name="twitter:image" content="https://grupoavich.vercel.app/assets/captura-3d-generador.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/styles.css">
+<style>
+:root{--banner-h:36px;--morado:#6C3BAA;--morado2:#8B5CF6;--morado-lite:#B48CE6;--morado-bg:#F4EEFB}
+
+/* ===== BANNER DE LANZAMIENTO ===== */
+.launch-banner{background:linear-gradient(90deg,#3B1C66 0%,#6C3BAA 50%,#3B1C66 100%);color:#fff;text-align:center;padding:.6rem 1rem;font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:600;position:fixed;top:0;left:0;right:0;z-index:200;line-height:1.3}
+.launch-banner span{background:rgba(255,255,255,.2);border-radius:4px;padding:.1rem .5rem;margin:0 .3rem;font-family:'JetBrains Mono',monospace;font-size:.82rem}
+
+/* ===== ACENTOS MORADOS (solo esta página) ===== */
+.p3d .nav-cta{background:var(--morado);box-shadow:0 2px 12px rgba(108,59,170,.3)}
+.p3d .nav-cta:hover{background:var(--morado2)}
+.p3d .chip-3d{color:var(--morado);background:var(--morado-bg)}
+
+/* ===== HERO ===== */
+.p3d #hero3d{min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:3rem;padding:8rem 2.5rem 4rem;background:#140A22;position:relative;overflow:hidden}
+.p3d #hero3d::before{content:'3D';position:absolute;right:-3rem;bottom:-7rem;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30rem;line-height:1;color:rgba(255,255,255,.035);letter-spacing:-.06em;pointer-events:none}
+.p3d #hero3d::after{content:'';position:absolute;top:-30%;left:-10%;width:60%;height:140%;background:radial-gradient(closest-side,rgba(108,59,170,.35),transparent);pointer-events:none}
+.hero3d-content{position:relative;z-index:1}
+.hero3d-visual{position:relative;z-index:1;display:flex;align-items:center;justify-content:center}
+.eyebrow-3d{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:500;color:var(--morado-lite);letter-spacing:.14em;text-transform:uppercase;display:inline-flex;align-items:center;gap:.6rem;margin-bottom:1.4rem}
+.eyebrow-3d .dot{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.2);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(74,222,128,.2)}50%{box-shadow:0 0 0 7px rgba(74,222,128,.05)}}
+.p3d h1.hero3d-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(2.4rem,4.6vw,3.9rem);font-weight:700;line-height:1.07;letter-spacing:-.035em;margin-bottom:1.3rem;color:#fff}
+.p3d h1.hero3d-title em{font-style:normal;color:var(--morado-lite)}
+.hero3d-sub{color:rgba(255,255,255,.62);font-size:1.06rem;max-width:480px;margin-bottom:1.5rem;line-height:1.75}
+.avail-pill{display:inline-flex;align-items:center;gap:.5rem;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.28);color:#4ade80;border-radius:100px;font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:600;padding:.4rem 1rem;margin-bottom:1.75rem}
+.avail-pill::before{content:'✓';font-weight:700}
+.p3d .btn-morado{background:var(--morado);color:#fff;padding:.85rem 2rem;border-radius:7px;font-weight:700;font-size:.95rem;text-decoration:none;font-family:'Space Grotesk',sans-serif;transition:all .2s;box-shadow:0 4px 22px rgba(108,59,170,.4);display:inline-flex;align-items:center;gap:.5rem}
+.p3d .btn-morado:hover{background:var(--morado2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(108,59,170,.5)}
+.p3d #hero3d .btn-outline{border-color:rgba(255,255,255,.22);color:rgba(255,255,255,.8)}
+.p3d #hero3d .btn-outline:hover{border-color:var(--morado-lite);color:var(--morado-lite)}
+.hero3d-badge{position:absolute;background:rgba(27,16,43,.92);border:1px solid rgba(180,140,230,.25);border-radius:9px;padding:.55rem .9rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.7);box-shadow:0 10px 30px rgba(0,0,0,.4);animation:floatB 3.4s ease-in-out infinite;white-space:nowrap;z-index:3;backdrop-filter:blur(6px)}
+.hero3d-badge b{color:var(--morado-lite);font-weight:600}
+.hero3d-svg{width:100%;max-width:500px;filter:drop-shadow(0 30px 60px rgba(0,0,0,.45))}
+
+/* ===== TRUST + STATS (overrides morados) ===== */
+.p3d .trust-strip{background:#1B102B;border-color:rgba(255,255,255,.07)}
+.p3d .trust-strip span{color:rgba(255,255,255,.4)}
+.p3d .trust-divider{background:rgba(255,255,255,.12)}
+.p3d .stats-row{border-bottom-color:var(--morado)}
+.p3d .stat-n{color:var(--morado-lite)}
+
+/* ===== SECTION ACCENTS ===== */
+.p3d .section-tag{color:var(--morado)}
+.p3d .section-tag::before{background:var(--morado)}
+
+/* ===== FEATURES ===== */
+.p3d #features3d{background:#fff}
+.feat3d-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-top:3.5rem}
+.feat3d-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.9rem 1.6rem;transition:transform .2s,box-shadow .2s,border-color .2s}
+.feat3d-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(108,59,170,.12);border-color:rgba(108,59,170,.3)}
+.feat3d-ico{width:52px;height:52px;border-radius:12px;background:var(--morado-bg);display:flex;align-items:center;justify-content:center;margin-bottom:1.2rem}
+.feat3d-ico svg{width:28px;height:28px}
+.feat3d-card h3{font-family:'Space Grotesk',sans-serif;font-size:1.08rem;font-weight:600;margin-bottom:.5rem;color:var(--black)}
+.feat3d-card p{color:var(--gray5);font-size:.885rem;line-height:1.7}
+.feat3d-card .tag{display:inline-block;margin-top:.9rem;font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--morado);background:var(--morado-bg);padding:.2rem .55rem;border-radius:5px}
+
+/* ===== WORKFLOW ===== */
+.p3d #flujo{background:#140A22;position:relative;overflow:hidden}
+.p3d #flujo .section-tag{color:var(--morado-lite)}
+.p3d #flujo h2.section-title{color:#fff}
+.p3d #flujo .section-sub{color:rgba(255,255,255,.5)}
+.flow-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-top:3rem;counter-reset:step}
+.flow-step{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.75rem 1.4rem;position:relative}
+.flow-step .n{font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:700;color:var(--morado-lite);letter-spacing:.1em}
+.flow-ico{width:46px;height:46px;margin:.9rem 0 1rem;color:var(--morado-lite)}
+.flow-ico svg{width:46px;height:46px}
+.flow-step h3{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:600;color:#fff;margin-bottom:.45rem}
+.flow-step p{font-size:.84rem;color:rgba(255,255,255,.5);line-height:1.65}
+.flow-step:not(:last-child)::after{content:'→';position:absolute;right:-.95rem;top:50%;transform:translateY(-50%);color:var(--morado);font-size:1.3rem;z-index:2}
+
+/* ===== SHOWCASE ===== */
+.p3d #showcase3d{background:var(--gray1)}
+.p3d #showcase3d .tab-btn.active{background:var(--morado);border-color:var(--morado)}
+.p3d #showcase3d .tab-btn:hover:not(.active){border-color:var(--morado);color:var(--morado)}
+.p3d #showcase3d .pill-tag{background:var(--morado-bg);border-color:rgba(108,59,170,.2);color:var(--morado)}
+.p3d #showcase3d .feat-list .arrow{color:var(--morado)}
+.p3d #showcase3d .btn-morado{box-shadow:0 4px 18px rgba(108,59,170,.3)}
+.sc-frame{border-radius:14px;overflow:hidden;box-shadow:var(--shadow-lg);border:1px solid var(--border);background:#fff}
+.sc-frame svg{width:100%;display:block}
+.p3d .cap-frame img{height:auto}
+.p3d .cap-frame.portrait{max-width:520px;margin:0 auto}
+
+/* ===== PRECIOS (3 planes, morado) ===== */
+.p3d #precios{background:#140A22}
+.p3d #precios .section-tag{color:var(--morado-lite)}
+.p3d .plan-toggle{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+.p3d .toggle-btn.active{background:var(--morado)}
+.p3d .precio-grid{grid-template-columns:repeat(3,1fr);max-width:1000px}
+.p3d .precio-card.featured{border-color:var(--morado);background:linear-gradient(135deg,#1e1030 0%,#171026 100%)}
+.p3d .price-badge{background:var(--morado)}
+.p3d .price-amount sup{color:var(--morado-lite)}
+.p3d .price-seats b{color:var(--morado-lite)}
+.p3d .price-list li::before{color:var(--morado-lite)}
+.p3d .plan-btn-solid{background:var(--morado);box-shadow:0 4px 20px rgba(108,59,170,.4)}
+.p3d .plan-btn-solid:hover{background:var(--morado2)}
+.p3d .plan-btn-ghost{border:1px solid rgba(180,140,230,.3);color:var(--morado-lite)}
+.p3d .plan-btn-ghost:hover{border-color:var(--morado-lite);background:rgba(108,59,170,.12)}
+.price-save{display:inline-flex;align-items:center;gap:.4rem;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);border-radius:5px;padding:.2rem .55rem;margin-bottom:.75rem}
+.precio-card.custom{border-style:dashed;border-color:rgba(180,140,230,.4);background:rgba(255,255,255,.02)}
+.precio-card.custom .price-amount{font-size:1.9rem}
+
+/* ===== ROADMAP + FAQ accents ===== */
+.p3d #roadmap .road-card.active{border-left-color:var(--morado)}
+.p3d #faq summary::after{color:var(--morado)}
+.p3d details[open] summary{color:var(--morado)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:980px){
+  .feat3d-grid{grid-template-columns:1fr 1fr}
+  .flow-grid{grid-template-columns:1fr 1fr}
+  .flow-step:nth-child(2)::after{display:none}
+  .p3d .precio-grid{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+  .p3d #hero3d{grid-template-columns:1fr;text-align:center;padding:7rem 1.5rem 3rem}
+  .eyebrow-3d,.avail-pill{justify-content:center}
+  .hero3d-sub{max-width:100%}
+  .hero3d-content .hero-btns{justify-content:center}
+  .hero3d-visual{order:-1;margin-bottom:1rem}
+}
+@media(max-width:640px){
+  .launch-banner{font-size:.72rem}
+  .feat3d-grid{grid-template-columns:1fr}
+  .flow-grid{grid-template-columns:1fr}
+  .flow-step::after{display:none!important}
+  .hero3d-badge{display:none}
+}
+</style>
 </head>
-<body>
+<body class="p3d">
 <a href="#main" class="skip-link">Saltar al contenido</a>
+<div class="launch-banner" id="trialBanner">🎉 <b>AVICH 3D ya está disponible</b> — Diseña, fabrica y arma muebles sin salir de <span>SketchUp</span></div>
+
 <nav aria-label="Principal">
   <a href="../" class="nav-logo" aria-label="Grupo AVICH, inicio"><img src="../assets/logo.webp" alt="Grupo AVICH" width="71" height="42"></a>
   <ul class="nav-links" id="navLinks">
-    <li><a href="../#roadmap">Roadmap</a></li>
-    <li><a href="mailto:grupoavich@gmail.com">Contacto</a></li>
+    <li><a href="#features3d">Qué hace</a></li>
+    <li><a href="#showcase3d">Herramientas</a></li>
+    <li><a href="#precios">Precios</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="../mi-cuenta/">Mi cuenta</a></li>
     <li class="has-sub"><button class="sub-toggle" type="button" aria-expanded="false" aria-controls="subExt">Extensiones</button>
       <ul class="sub" id="subExt">
         <li><a href="../sistemas/">AVICH Sistemas <span class="chip chip-live">Disponible</span></a></li>
-        <li><a href="../3d/" class="nav-current" aria-current="page">AVICH 3D <span class="chip">Próximamente</span></a></li>
+        <li><a href="../3d/" class="nav-current" aria-current="page">AVICH 3D <span class="chip chip-3d">Disponible</span></a></li>
       </ul></li>
   </ul>
-  <div class="nav-right"><a href="mailto:grupoavich@gmail.com?subject=Av%C3%ADsenme%20cuando%20salga%20AVICH%203D" class="nav-cta">Avísame →</a>
+  <div class="nav-right"><a href="#precios" class="nav-cta">Ver planes →</a>
   <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Abrir menú"><span></span><span></span><span></span></button></div>
 </nav>
+
 <main id="main">
-<section id="soon-hero">
-  <div class="section-inner">
-    <span class="soon-pill">Próximamente</span>
-    <h1>AVICH <em>3D</em></h1>
-    <p>Una extensión totalmente nueva y más avanzada para SketchUp, creada por Grupo AVICH. Estamos terminando los últimos detalles. Escríbenos y te avisamos apenas esté disponible.</p>
+<!-- ================= HERO ================= -->
+<section id="hero3d">
+  <div class="hero3d-content">
+    <span class="eyebrow-3d"><span class="dot"></span> Nuevo · Disponible ahora</span>
+    <h1 class="hero3d-title">Del diseño al<br>mueble <em>fabricado</em>,<br>dentro de SketchUp</h1>
+    <p class="hero3d-sub">AVICH 3D es la extensión profesional para carpinteros y fabricantes de muebles: genera cocinas y closets, arma estructuras completas en un clic, crea cajones, puertas y correderas, y prepara el despiece, el CNC y los planos. Todo en español, con milímetros exactos.</p>
+    <div class="avail-pill">Instala, diseña y empieza a producir hoy mismo</div>
     <div class="hero-btns">
-      <a href="mailto:grupoavich@gmail.com?subject=Av%C3%ADsenme%20cuando%20salga%20AVICH%203D" class="btn-red">Avísame cuando salga →</a>
-      <a href="../sistemas/" class="btn-outline">Mientras tanto, conoce AVICH Sistemas</a>
+      <a href="#precios" class="btn-morado">Ver planes y precios →</a>
+      <a href="#features3d" class="btn-outline">Ver qué hace</a>
+    </div>
+  </div>
+  <div class="hero3d-visual">
+    <div class="hero3d-badge" style="top:6%;right:-2%;animation-delay:0s">Módulo generado · <b>auto</b></div>
+    <div class="hero3d-badge" style="bottom:20%;left:-4%;animation-delay:1.3s">Piezas: <b>34</b> · cantos <b>OK</b></div>
+    <div class="hero3d-badge" style="bottom:4%;right:6%;animation-delay:2.1s">Estructura <b>TLZBAF</b></div>
+    <!-- Ilustración propia: módulo de closet con cajones y puerta, en vista explotada -->
+    <svg class="hero3d-svg" role="img" aria-label="Módulo de mueble con cajones y puerta mostrado en vista explotada con piezas de melamina" viewBox="0 0 500 440" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="h-face" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F6F2FB"/><stop offset="55%" stop-color="#EDE6F7"/><stop offset="100%" stop-color="#E0D5F0"/></linearGradient>
+        <linearGradient id="h-side" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#C9B8E4"/><stop offset="100%" stop-color="#B9A4DA"/></linearGradient>
+        <linearGradient id="h-top" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FBF8FE"/><stop offset="100%" stop-color="#E7DEF4"/></linearGradient>
+        <linearGradient id="h-pvc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8B5CF6"/><stop offset="50%" stop-color="#6C3BAA"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient>
+        <linearGradient id="h-draw" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFFFFF"/><stop offset="100%" stop-color="#EBE3F6"/></linearGradient>
+        <radialGradient id="h-sh" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(0,0,0,.35)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient>
+        <pattern id="h-veta" width="54" height="200" patternUnits="userSpaceOnUse">
+          <line x1="8" y1="0" x2="8" y2="200" stroke="rgba(108,59,170,.10)" stroke-width="1.4"/>
+          <line x1="24" y1="0" x2="24" y2="200" stroke="rgba(108,59,170,.06)" stroke-width=".8"/>
+          <line x1="40" y1="0" x2="40" y2="200" stroke="rgba(108,59,170,.08)" stroke-width="1.1"/>
+        </pattern>
+      </defs>
+
+      <ellipse cx="250" cy="416" rx="150" ry="15" fill="url(#h-sh)"/>
+
+      <!-- Carcasa / lateral derecho (perspectiva ligera) -->
+      <g>
+        <polygon points="340,70 372,54 372,360 340,378" fill="url(#h-side)"/>
+        <polygon points="340,64 372,48 372,56 340,72" fill="url(#h-pvc)" opacity=".85"/>
+      </g>
+      <!-- Techo -->
+      <polygon points="120,70 340,70 372,54 152,54" fill="url(#h-top)"/>
+      <polygon points="120,64 340,64 340,70 120,70" fill="url(#h-pvc)" opacity=".85"/>
+
+      <!-- Lateral izquierdo -->
+      <polygon points="120,70 120,378 146,378 146,70" fill="url(#h-face)"/>
+      <polygon points="120,70 120,378 146,378 146,70" fill="url(#h-veta)" opacity=".7"/>
+      <polygon points="120,64 146,64 146,70 120,70" fill="url(#h-pvc)" opacity=".9"/>
+
+      <!-- División central -->
+      <polygon points="240,74 258,74 258,374 240,374" fill="url(#h-face)"/>
+      <polygon points="240,74 258,74 258,80 240,80" fill="url(#h-pvc)" opacity=".8"/>
+
+      <!-- Base -->
+      <polygon points="120,360 340,360 372,360 372,378 146,378 120,378" fill="url(#h-top)"/>
+      <polygon points="120,374 340,374 340,378 120,378" fill="url(#h-pvc)" opacity=".8"/>
+
+      <!-- Puerta izquierda -->
+      <g>
+        <polygon points="150,80 236,80 236,356 150,356" fill="url(#h-draw)"/>
+        <polygon points="150,80 236,80 236,356 150,356" fill="url(#h-veta)" opacity=".5"/>
+        <rect x="150" y="80" width="86" height="5" fill="url(#h-pvc)" opacity=".8"/>
+        <rect x="150" y="351" width="86" height="5" fill="url(#h-pvc)" opacity=".8"/>
+        <rect x="222" y="200" width="6" height="40" rx="3" fill="#6C3BAA"/>
+        <polygon points="154,82 164,82 164,354 154,354" fill="rgba(255,255,255,.4)"/>
+      </g>
+
+      <!-- Cajones a la derecha (3) -->
+      <g>
+        <!-- cajón 1 -->
+        <rect x="262" y="86" width="74" height="78" rx="3" fill="url(#h-draw)"/>
+        <rect x="262" y="86" width="74" height="5" fill="url(#h-pvc)" opacity=".8"/>
+        <rect x="286" y="118" width="26" height="6" rx="3" fill="#6C3BAA"/>
+        <!-- cajón 2 -->
+        <rect x="262" y="172" width="74" height="78" rx="3" fill="url(#h-draw)"/>
+        <rect x="262" y="172" width="74" height="5" fill="url(#h-pvc)" opacity=".8"/>
+        <rect x="286" y="204" width="26" height="6" rx="3" fill="#6C3BAA"/>
+        <!-- cajón 3 -->
+        <rect x="262" y="258" width="74" height="78" rx="3" fill="url(#h-draw)"/>
+        <rect x="262" y="258" width="74" height="5" fill="url(#h-pvc)" opacity=".8"/>
+        <rect x="286" y="290" width="26" height="6" rx="3" fill="#6C3BAA"/>
+      </g>
+
+      <!-- Pieza explotada: un estante volando arriba -->
+      <g transform="translate(0,-18)" opacity=".96">
+        <polygon points="158,40 330,40 350,30 178,30" fill="url(#h-top)"/>
+        <polygon points="158,40 330,40 330,47 158,47" fill="url(#h-face)"/>
+        <polygon points="158,37 330,37 330,40 158,40" fill="url(#h-pvc)" opacity=".85"/>
+        <line x1="150" y1="30" x2="158" y2="40" stroke="#6C3BAA" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>
+      </g>
+
+      <!-- Pieza explotada: un frente de cajón flotando a la derecha -->
+      <g transform="translate(26,0)" opacity=".96">
+        <rect x="392" y="258" width="66" height="74" rx="3" fill="url(#h-draw)"/>
+        <rect x="392" y="258" width="66" height="5" fill="url(#h-pvc)" opacity=".85"/>
+        <rect x="414" y="288" width="22" height="6" rx="3" fill="#6C3BAA"/>
+        <line x1="336" y1="296" x2="392" y2="296" stroke="#6C3BAA" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>
+      </g>
+
+      <!-- Cotas -->
+      <g opacity=".75">
+        <line x1="96" y1="70" x2="96" y2="378" stroke="var(--morado,#6C3BAA)" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="91" y1="70" x2="101" y2="70" stroke="#6C3BAA" stroke-width="1"/><line x1="91" y1="378" x2="101" y2="378" stroke="#6C3BAA" stroke-width="1"/>
+        <text x="88" y="228" fill="#8B5CF6" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle" transform="rotate(-90,88,228)">2000 mm</text>
+        <line x1="150" y1="398" x2="336" y2="398" stroke="#6C3BAA" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="150" y1="393" x2="150" y2="403" stroke="#6C3BAA" stroke-width="1"/><line x1="336" y1="393" x2="336" y2="403" stroke="#6C3BAA" stroke-width="1"/>
+        <text x="243" y="413" fill="#8B5CF6" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle">1200 mm</text>
+      </g>
+      <!-- Etiqueta material -->
+      <g>
+        <rect x="186" y="68" width="128" height="18" rx="4" fill="rgba(108,59,170,.12)" stroke="rgba(108,59,170,.3)" stroke-width=".8"/>
+        <text x="250" y="80" fill="#6C3BAA" font-family="JetBrains Mono,monospace" font-size="8.5" text-anchor="middle" letter-spacing=".06em">MELAMINA 18mm · MDF</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<div class="trust-strip">
+  <span>✓ Nativo en SketchUp</span><div class="trust-divider"></div>
+  <span>100% en español</span><div class="trust-divider"></div>
+  <span>Milímetros exactos</span><div class="trust-divider"></div>
+  <span>Despiece y CNC</span><div class="trust-divider"></div>
+  <span>Cocinas y closets</span>
+</div>
+
+<div class="stats-row">
+  <div class="stat-item"><span class="stat-n">25+</span><span class="stat-l">Herramientas integradas</span></div>
+  <div class="stat-item"><span class="stat-n">9</span><span class="stat-l">Sistemas de cajones</span></div>
+  <div class="stat-item"><span class="stat-n">1 clic</span><span class="stat-l">Arma la estructura</span></div>
+  <div class="stat-item"><span class="stat-n">100%</span><span class="stat-l">En español</span></div>
+</div>
+
+<!-- ================= FEATURES ================= -->
+<section id="features3d">
+  <div class="section-inner">
+    <span class="section-tag">Qué hace AVICH 3D</span>
+    <h2 class="section-title">Una suite completa para<br>diseñar y fabricar muebles</h2>
+    <p class="section-sub">Mucho más que dibujar: AVICH 3D entiende cómo se arma un mueble de verdad y automatiza el trabajo pesado, desde la estructura hasta la pieza de corte.</p>
+    <div class="feat3d-grid">
+
+      <div class="feat3d-card">
+        <div class="feat3d-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C3BAA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1.5"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="12" y2="12"/><line x1="16" y1="7" x2="16" y2="7"/><line x1="8" y1="16" x2="8" y2="16"/></svg></div>
+        <h3>Generador de cocinas y closets</h3>
+        <p>Arma cocinas (lineal, en L, en C, paralela o con isla) y closets, roperos y walking por módulos. Catálogo, edición con Tab+clic y medidas que salen de tu Configuración general.</p>
+        <span class="tag">Módulos automáticos</span>
+      </div>
+
+      <div class="feat3d-card">
+        <div class="feat3d-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C3BAA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><circle cx="12" cy="6" r=".6" fill="#6C3BAA"/><circle cx="12" cy="12" r=".6" fill="#6C3BAA"/></svg></div>
+        <h3>Estructuras en un clic</h3>
+        <p>Un menú radial arma el cuerpo completo (laterales, base, techo, zócalos, amarres y fondo) de una sola vez. El orden de armado define la geometría: LZBA, TLZBAF, LBT y más.</p>
+        <span class="tag">10 estructuras</span>
+      </div>
+
+      <div class="feat3d-card">
+        <div class="feat3d-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C3BAA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><rect x="3" y="10.5" width="18" height="5" rx="1"/><rect x="3" y="17" width="18" height="3.5" rx="1"/><line x1="11" y1="6.5" x2="13" y2="6.5"/><line x1="11" y1="13" x2="13" y2="13"/></svg></div>
+        <h3>Espacio Inteligente: 9 cajones</h3>
+        <p>Detecta el hueco y llena con cajones sin tapa, con tapa, tapa a 45°, gola, condimentero, cajones en C de lavabo, estantes graduables y vinero. Con guías de corredera reales.</p>
+        <span class="tag">Detección automática</span>
+      </div>
+
+      <div class="feat3d-card">
+        <div class="feat3d-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C3BAA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="7" height="18" rx="1"/><rect x="13" y="3" width="7" height="18" rx="1"/><line x1="8.5" y1="11" x2="8.5" y2="14"/><line x1="15.5" y1="11" x2="15.5" y2="14"/></svg></div>
+        <h3>Puertas y correderas</h3>
+        <p>Puertas de gabinete y de forma libre con modo interior/exterior, puertas de perfil de aluminio con vidrio, y correderas D25, D52 y Ducloset con traslape y ranuras exactas.</p>
+        <span class="tag">Interior / Exterior</span>
+      </div>
+
+      <div class="feat3d-card">
+        <div class="feat3d-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C3BAA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V8l7-4 7 4v12"/><line x1="5" y1="20" x2="19" y2="20"/><path d="M9 20v-5h6v5" fill="rgba(108,59,170,.1)"/><path d="M16 11l2-1.2" stroke="#8B5CF6"/></svg></div>
+        <h3>Herrajes y detalles finos</h3>
+        <p>Perfiles LED con luz real, ingletes y ranura; redondeos, chaflanes y rebajes; ensambles de media madera; agujeros y piezas circulares; panelados; y cubiertas de cocina con barra.</p>
+        <span class="tag">LED · juntas · molduras</span>
+      </div>
+
+      <div class="feat3d-card">
+        <div class="feat3d-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C3BAA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M4 14l4-1 3 2 4-4 5 2" stroke="#8B5CF6"/><line x1="8" y1="4" x2="8" y2="7"/><line x1="16" y1="4" x2="16" y2="7"/></svg></div>
+        <h3>Escalado sin deformar</h3>
+        <p>Estira un módulo entero en cualquier eje —con sus cajones y puertas— sin deformar espesores, ranuras ni holguras. Usa "mallas" que solo estiran los espacios, no las piezas.</p>
+        <span class="tag">Tipo Fredo Scale</span>
+      </div>
+
+      <div class="feat3d-card">
+        <div class="feat3d-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C3BAA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5c-4.7 0-8 4.5-9 8.5 1 4 4.3 8.5 9 8.5s8-4.5 9-8.5c-1-4-4.3-8.5-9-8.5z"/></svg></div>
+        <h3>Verificador de piezas</h3>
+        <p>Ve, oculta y selecciona piezas por ranura, bisagra, corte especial, pieza curva, tipo de canto, material o espesor. Con modo Rayos X para revisar el interior del mueble.</p>
+        <span class="tag">Control de calidad</span>
+      </div>
+
+      <div class="feat3d-card">
+        <div class="feat3d-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C3BAA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l5 5-9 9-5 1 1-5z"/><path d="M4 20h7" stroke="#8B5CF6"/><circle cx="18" cy="6.5" r="1" fill="#6C3BAA" stroke="none"/></svg></div>
+        <h3>Materiales y texturas en la nube</h3>
+        <p>Catálogo propio de melaminas y colores con nombre, marca, precio, medidas y espesor. Tres colores de trabajo que usan todas las piezas, y un pincel que pinta aunque estén agrupadas.</p>
+        <span class="tag">Catálogo .skm</span>
+      </div>
+
+      <div class="feat3d-card">
+        <div class="feat3d-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#6C3BAA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 9h18" /><circle cx="6" cy="7" r=".5" fill="#6C3BAA"/><path d="M10 14l4-2-4-2z" fill="rgba(108,59,170,.15)"/></svg></div>
+        <h3>Animación de apertura</h3>
+        <p>Abre y cierra puertas, cajones y correderas con un clic. Dibuja las líneas de apertura (V/X), define bisagras y graba el recorrido con Rec/Play para presentar al cliente.</p>
+        <span class="tag">Rec / Play</span>
+      </div>
+
     </div>
   </div>
 </section>
+
+<!-- ================= WORKFLOW ================= -->
+<section id="flujo">
+  <div class="section-inner">
+    <span class="section-tag">Cómo trabaja</span>
+    <h2 class="section-title">De la idea al mueble armado</h2>
+    <p class="section-sub">AVICH 3D acompaña todo el proceso, sin exportar a otro programa a mitad de camino.</p>
+    <div class="flow-grid">
+      <div class="flow-step">
+        <span class="n">PASO 01</span>
+        <div class="flow-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.5"/></svg></div>
+        <h3>Diseña o genera</h3>
+        <p>Dibuja con Componente Fácil o deja que el Generador arme la cocina o el closet por módulos.</p>
+      </div>
+      <div class="flow-step">
+        <span class="n">PASO 02</span>
+        <div class="flow-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="11" y1="10" x2="11" y2="20"/></svg></div>
+        <h3>Arma estructura y cajones</h3>
+        <p>Pon el cuerpo en un clic y llena los espacios con cajones, puertas y correderas inteligentes.</p>
+      </div>
+      <div class="flow-step">
+        <span class="n">PASO 03</span>
+        <div class="flow-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="4" rx="1"/><rect x="3" y="13" width="6" height="8" rx="1"/><path d="M11 16h10" stroke="#B48CE6" stroke-dasharray="2 2"/></svg></div>
+        <h3>Despiece y optimización</h3>
+        <p>AVICH lee las piezas y arma la lista de corte, el aprovechamiento de placa, cantos y el CNC.</p>
+      </div>
+      <div class="flow-step">
+        <span class="n">PASO 04</span>
+        <div class="flow-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><line x1="9" y1="12" x2="16" y2="12"/><line x1="9" y1="16" x2="14" y2="16"/></svg></div>
+        <h3>Planos de armado</h3>
+        <p>Genera planos profesionales con vistas, cotas, herrajes y pasos de armado listos para el taller.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SHOWCASE ================= -->
+<section id="showcase3d">
+  <div class="section-inner">
+    <span class="section-tag">Las herramientas en acción</span>
+    <h2 class="section-title">Pensado por carpinteros,<br>para carpinteros</h2>
+    <p class="section-sub">Cada herramienta resuelve un problema real del taller. Explora las principales.</p>
+    <div class="tabs" role="tablist" aria-label="Herramientas de AVICH 3D">
+      <button class="tab-btn active" role="tab" id="btn-generador" aria-selected="true" aria-controls="tab-generador" tabindex="0" data-tab="generador">Generador</button>
+      <button class="tab-btn" role="tab" id="btn-estructuras" aria-selected="false" aria-controls="tab-estructuras" tabindex="-1" data-tab="estructuras">Estructuras</button>
+      <button class="tab-btn" role="tab" id="btn-cajones" aria-selected="false" aria-controls="tab-cajones" tabindex="-1" data-tab="cajones">Cajones</button>
+      <button class="tab-btn" role="tab" id="btn-texturas" aria-selected="false" aria-controls="tab-texturas" tabindex="-1" data-tab="texturas">Texturas</button>
+      <button class="tab-btn" role="tab" id="btn-despiece" aria-selected="false" aria-controls="tab-despiece" tabindex="-1" data-tab="despiece">Despiece y CNC</button>
+    </div>
+
+    <!-- GENERADOR -->
+    <div class="tab-panel active" id="tab-generador" role="tabpanel" aria-labelledby="btn-generador">
+      <div>
+        <span class="pill-tag">Generador de muebles</span>
+        <h3 class="tab-h3">Una cocina completa en minutos</h3>
+        <ul class="feat-list">
+          <li><span class="arrow">→</span><div><strong>Por módulos</strong> — Bajos, altos, torres y columnas que encajan solos</div></li>
+          <li><span class="arrow">→</span><div><strong>Cocina y closet</strong> — Lineal, L, C, paralela, con isla; ropero y walking</div></li>
+          <li><span class="arrow">→</span><div><strong>Edición viva</strong> — Tab+clic para cambiar un módulo sin rehacer todo</div></li>
+          <li><span class="arrow">→</span><div><strong>Tus medidas</strong> — Espesor, fondo y zócalo salen de tu Configuración</div></li>
+        </ul>
+        <a href="#precios" class="btn-morado">Ver planes →</a>
+      </div>
+      <div class="cap-frame"><img src="../assets/captura-3d-generador.webp" alt="Panel de módulos del Generador y cocina en L generada en SketchUp" width="1518" height="878" loading="lazy" decoding="async"></div>
+    </div>
+
+    <!-- ESTRUCTURAS -->
+    <div class="tab-panel" id="tab-estructuras" role="tabpanel" aria-labelledby="btn-estructuras" hidden>
+      <div>
+        <span class="pill-tag">Estructuras y Caja</span>
+        <h3 class="tab-h3">El cuerpo entero, de una vez</h3>
+        <ul class="feat-list">
+          <li><span class="arrow">→</span><div><strong>Menú radial</strong> — Elige la estructura y se arma dentro de un grupo</div></li>
+          <li><span class="arrow">→</span><div><strong>El orden importa</strong> — T-L-Z-B-A-F define cómo encajan las piezas</div></li>
+          <li><span class="arrow">→</span><div><strong>Reglas reales</strong> — Fondo de melamina, amarres atrás, zócalos y pieza Atrás</div></li>
+          <li><span class="arrow">→</span><div><strong>Caja Inteligente</strong> — Planta una caja con medidas y arma dentro</div></li>
+        </ul>
+        <a href="#precios" class="btn-morado">Ver planes →</a>
+      </div>
+      <div class="cap-frame"><img src="../assets/captura-3d-estructuras.webp" alt="Menú radial Estructuras y mueble armado en SketchUp" width="916" height="773" loading="lazy" decoding="async"></div>
+    </div>
+
+    <!-- CAJONES -->
+    <div class="tab-panel" id="tab-cajones" role="tabpanel" aria-labelledby="btn-cajones" hidden>
+      <div>
+        <span class="pill-tag">Espacio Inteligente</span>
+        <h3 class="tab-h3">Cajones que entienden el hueco</h3>
+        <ul class="feat-list">
+          <li><span class="arrow">→</span><div><strong>9 sistemas</strong> — Sin tapa, con tapa, tapa 45, gola, condimentero, en C, vinero…</div></li>
+          <li><span class="arrow">→</span><div><strong>Reparto automático</strong> — Teclea cuántos y se distribuyen con sus holguras</div></li>
+          <li><span class="arrow">→</span><div><strong>Guías reales</strong> — Correderas marcadas en el cajón y en la pared del hueco</div></li>
+          <li><span class="arrow">→</span><div><strong>Doble columna</strong> — Con TAB divide y agrega la pieza del medio</div></li>
+        </ul>
+        <a href="#precios" class="btn-morado">Ver planes →</a>
+      </div>
+      <div class="cap-frame"><img src="../assets/captura-3d-cajones.webp" alt="Menú radial Espacio Inteligente y cajonera con tapas armada en SketchUp" width="1181" height="799" loading="lazy" decoding="async"></div>
+    </div>
+
+    <!-- TEXTURAS -->
+    <div class="tab-panel" id="tab-texturas" role="tabpanel" aria-labelledby="btn-texturas" hidden>
+      <div>
+        <span class="pill-tag">Materiales y texturas</span>
+        <h3 class="tab-h3">Tu catálogo de melaminas, en la nube</h3>
+        <ul class="feat-list">
+          <li><span class="arrow">→</span><div><strong>Biblioteca de texturas</strong> — Galería de miniaturas grandes con nombre, marca y categoría</div></li>
+          <li><span class="arrow">→</span><div><strong>Busca y filtra</strong> — Por nombre, por marca o por categoría en segundos</div></li>
+          <li><span class="arrow">→</span><div><strong>Mi catálogo</strong> — Agrega las que usas y edita, duplica o elimina cada una</div></li>
+          <li><span class="arrow">→</span><div><strong>Tres colores de trabajo</strong> — Cuerpo, tapas y puertas: todo lo que crea AVICH 3D sale con ellos</div></li>
+        </ul>
+        <a href="#precios" class="btn-morado">Ver planes →</a>
+      </div>
+      <div class="cap-frame portrait"><img src="../assets/captura-3d-texturas.webp" alt="Biblioteca de texturas de AVICH 3D con melaminas por marca" width="778" height="948" loading="lazy" decoding="async"></div>
+    </div>
+
+    <!-- DESPIECE -->
+    <div class="tab-panel" id="tab-despiece" role="tabpanel" aria-labelledby="btn-despiece" hidden>
+      <div>
+        <span class="pill-tag">Despiece · CNC · planos</span>
+        <h3 class="tab-h3">Listo para producir</h3>
+        <ul class="feat-list">
+          <li><span class="arrow">→</span><div><strong>Lee cada pieza</strong> — Material, espesor, veta, cantos y rol en el mueble</div></li>
+          <li><span class="arrow">→</span><div><strong>Optimización</strong> — Acomoda las piezas minimizando el desperdicio de placa</div></li>
+          <li><span class="arrow">→</span><div><strong>CNC real</strong> — Alivios de fresa en esquinas para DXF o código G del router</div></li>
+          <li><span class="arrow">→</span><div><strong>Planos de armado</strong> — Vistas, cotas, herrajes y pasos para el taller</div></li>
+        </ul>
+        <a href="#precios" class="btn-morado">Ver planes →</a>
+      </div>
+      <div class="sc-frame">
+        <svg viewBox="0 0 560 380" role="img" aria-label="Optimización de corte sobre una placa de melamina" xmlns="http://www.w3.org/2000/svg">
+          <rect width="560" height="380" fill="#140A22"/>
+          <!-- placa -->
+          <rect x="40" y="40" width="330" height="300" rx="3" fill="#1E1330" stroke="#6C3BAA" stroke-width="1.5"/>
+          <text x="52" y="60" fill="#B48CE6" font-family="JetBrains Mono,monospace" font-size="10">PLACA 2440 × 1220 · Melamina 18mm</text>
+          <!-- piezas acomodadas -->
+          <g font-family="JetBrains Mono,monospace" font-size="8" fill="#D9C6F2" text-anchor="middle">
+            <rect x="52" y="74" width="150" height="90" rx="2" fill="rgba(139,92,246,.18)" stroke="#8B5CF6"/><text x="127" y="122">Lateral 2000×560</text>
+            <rect x="210" y="74" width="150" height="90" rx="2" fill="rgba(139,92,246,.14)" stroke="#8B5CF6"/><text x="285" y="122">Lateral 2000×560</text>
+            <rect x="52" y="172" width="98" height="70" rx="2" fill="rgba(139,92,246,.12)" stroke="#8B5CF6"/><text x="101" y="210">Base</text>
+            <rect x="158" y="172" width="98" height="70" rx="2" fill="rgba(139,92,246,.12)" stroke="#8B5CF6"/><text x="207" y="210">Techo</text>
+            <rect x="264" y="172" width="96" height="70" rx="2" fill="rgba(139,92,246,.1)" stroke="#8B5CF6"/><text x="312" y="210">Fondo</text>
+            <rect x="52" y="250" width="74" height="80" rx="2" fill="rgba(139,92,246,.1)" stroke="#8B5CF6"/><text x="89" y="292">Cajón</text>
+            <rect x="134" y="250" width="74" height="80" rx="2" fill="rgba(139,92,246,.1)" stroke="#8B5CF6"/><text x="171" y="292">Cajón</text>
+            <!-- alivio de fresa (rombo en esquina) -->
+            <path d="M214,250 l10,0 -5,8 z" fill="#FF6B6B" opacity=".8"/>
+            <rect x="214" y="250" width="96" height="80" rx="2" fill="rgba(139,92,246,.08)" stroke="#8B5CF6"/><text x="262" y="292">Puerta</text>
+          </g>
+          <!-- panel de datos a la derecha -->
+          <g transform="translate(398,40)">
+            <rect width="122" height="300" rx="6" fill="#1E1330" stroke="rgba(139,92,246,.3)"/>
+            <text x="16" y="30" fill="#fff" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600">Resumen</text>
+            <g font-family="JetBrains Mono,monospace" font-size="9">
+              <text x="16" y="58" fill="rgba(255,255,255,.45)">Piezas</text><text x="106" y="58" fill="#B48CE6" text-anchor="end">34</text>
+              <text x="16" y="82" fill="rgba(255,255,255,.45)">Placas</text><text x="106" y="82" fill="#B48CE6" text-anchor="end">3</text>
+              <text x="16" y="106" fill="rgba(255,255,255,.45)">Aprov.</text><text x="106" y="106" fill="#4ade80" text-anchor="end">93%</text>
+              <text x="16" y="130" fill="rgba(255,255,255,.45)">Cantos m</text><text x="106" y="130" fill="#B48CE6" text-anchor="end">42.6</text>
+            </g>
+            <line x1="16" y1="150" x2="106" y2="150" stroke="rgba(255,255,255,.1)"/>
+            <rect x="16" y="166" width="90" height="26" rx="5" fill="#6C3BAA"/><text x="61" y="183" fill="#fff" font-family="Space Grotesk,sans-serif" font-size="9" font-weight="600" text-anchor="middle">Exportar DXF</text>
+            <rect x="16" y="200" width="90" height="26" rx="5" fill="rgba(139,92,246,.2)" stroke="#8B5CF6"/><text x="61" y="217" fill="#B48CE6" font-family="Space Grotesk,sans-serif" font-size="9" font-weight="600" text-anchor="middle">Plano PDF</text>
+            <text x="16" y="256" fill="rgba(255,255,255,.3)" font-family="JetBrains Mono,monospace" font-size="7.5">◆ alivio de fresa Ø6</text>
+            <text x="16" y="272" fill="rgba(255,255,255,.3)" font-family="JetBrains Mono,monospace" font-size="7.5">  para router CNC</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PRECIOS ================= -->
+<section id="precios">
+  <div class="section-inner">
+    <span class="section-tag">Planes y precios</span>
+    <h2 class="section-title">Elige tu licencia</h2>
+    <p class="section-sub">Paga mensual o ahorra con el plan anual. Para talleres grandes, armamos un plan a tu medida.</p>
+    <div class="plan-toggle" role="group" aria-label="Periodo de pago">
+      <button class="toggle-btn active" aria-pressed="true" data-plan="mensual">Mensual</button>
+      <button class="toggle-btn" aria-pressed="false" data-plan="anual">Anual · ahorra</button>
+    </div>
+
+    <!-- MENSUAL -->
+    <div class="plan-section active" id="plan-mensual">
+      <div class="precio-grid">
+        <!-- Personal -->
+        <div class="precio-card">
+          <span class="plan-label">Personal — Mensual</span>
+          <div class="price-amount"><sup>$</sup>6<span class="per">.99/mes</span></div>
+          <div class="price-seats">💻 <b>1</b> computadora</div>
+          <p class="price-desc">Para el carpintero o diseñador independiente. Cancela cuando quieras.</p>
+          <ul class="price-list">
+            <li>Todas las herramientas incluidas</li>
+            <li>Generador de cocinas y closets</li>
+            <li>Despiece, CNC y planos</li>
+            <li>Actualizaciones mientras esté activa</li>
+            <li>Soporte por correo</li>
+          </ul>
+          <!-- Con el checkout de Paddle configurado (assets/pagos-config.js) este botón abre el pago; si no, usa el correo -->
+          <a href="mailto:grupoavich@gmail.com?subject=Comprar%20AVICH%203D%20-%20Personal%20mensual%20(%246.99)" data-comprar="personal_mensual" class="plan-btn plan-btn-solid">Comprar</a>
+        </div>
+        <!-- Empresarial -->
+        <div class="precio-card featured">
+          <span class="price-badge">Más popular</span>
+          <span class="plan-label">Empresarial — Mensual</span>
+          <div class="price-amount"><sup>$</sup>29<span class="per">.99/mes</span></div>
+          <div class="price-seats">💻 Hasta <b>5</b> computadoras</div>
+          <p class="price-desc">Para talleres y equipos. Varios operarios bajo una sola licencia.</p>
+          <ul class="price-list">
+            <li>Todo lo del plan Personal</li>
+            <li>Hasta 5 computadoras activas</li>
+            <li>Materiales y texturas compartidos</li>
+            <li>Actualizaciones mientras esté activa</li>
+            <li>Soporte prioritario</li>
+          </ul>
+          <a href="mailto:grupoavich@gmail.com?subject=Comprar%20AVICH%203D%20-%20Empresarial%20mensual%20(%2429.99)" data-comprar="empresarial_mensual" class="plan-btn plan-btn-solid">Comprar</a>
+        </div>
+        <!-- Personalizado -->
+        <div class="precio-card custom">
+          <span class="plan-label">Personalizado</span>
+          <div class="price-amount">A medida</div>
+          <div class="price-seats">💻 <b>+</b> computadoras</div>
+          <p class="price-desc">¿Más equipos, varias sedes o necesidades especiales? Lo armamos contigo.</p>
+          <ul class="price-list">
+            <li>Número de equipos a tu medida</li>
+            <li>Facturación a tu empresa</li>
+            <li>Capacitación opcional</li>
+            <li>Atención directa</li>
+          </ul>
+          <a href="mailto:grupoavich@gmail.com?subject=Plan%20personalizado%20AVICH%203D" class="plan-btn plan-btn-ghost">Solicitar cotización</a>
+        </div>
+      </div>
+      <div class="compare-note">💡 Todos los planes incluyen la extensión completa: Generador, Estructuras, cajones, puertas, correderas, LED, escalado, verificador, materiales, animación, despiece y planos.</div>
+    </div>
+
+    <!-- ANUAL -->
+    <div class="plan-section" id="plan-anual">
+      <div class="precio-grid">
+        <!-- Personal anual -->
+        <div class="precio-card">
+          <span class="plan-label">Personal — Anual</span>
+          <div class="price-save">Ahorras ~$23 al año</div>
+          <div class="price-amount"><sup>$</sup>60<span class="per">.99/año</span></div>
+          <div class="price-seats">💻 <b>1</b> computadora</div>
+          <p class="price-desc">El plan Personal con casi 3 meses de regalo frente al pago mensual.</p>
+          <ul class="price-list">
+            <li>Todas las herramientas incluidas</li>
+            <li>Generador de cocinas y closets</li>
+            <li>Despiece, CNC y planos</li>
+            <li>Actualizaciones durante el año</li>
+            <li>Soporte por correo</li>
+          </ul>
+          <a href="mailto:grupoavich@gmail.com?subject=Comprar%20AVICH%203D%20-%20Personal%20anual%20(%2460.99)" data-comprar="personal_anual" class="plan-btn plan-btn-solid">Comprar</a>
+        </div>
+        <!-- Empresarial anual -->
+        <div class="precio-card featured">
+          <span class="price-badge">Mejor valor</span>
+          <span class="plan-label">Empresarial — Anual</span>
+          <div class="price-save">Ahorras ~$40 al año</div>
+          <div class="price-amount"><sup>$</sup>319<span class="per">.99/año</span></div>
+          <div class="price-seats">💻 Hasta <b>6</b> computadoras</div>
+          <p class="price-desc">Todo el taller cubierto por un año. Alrededor de $53 por computadora.</p>
+          <ul class="price-list">
+            <li>Todo lo del plan Personal</li>
+            <li>Hasta 6 computadoras activas</li>
+            <li>Materiales y texturas compartidos</li>
+            <li>Actualizaciones durante el año</li>
+            <li>Soporte prioritario</li>
+          </ul>
+          <a href="mailto:grupoavich@gmail.com?subject=Comprar%20AVICH%203D%20-%20Empresarial%20anual%20(%24319.99)" data-comprar="empresarial_anual" class="plan-btn plan-btn-solid">Comprar</a>
+        </div>
+        <!-- Personalizado -->
+        <div class="precio-card custom">
+          <span class="plan-label">Personalizado</span>
+          <div class="price-amount">A medida</div>
+          <div class="price-seats">💻 <b>+</b> computadoras</div>
+          <p class="price-desc">¿Más equipos, varias sedes o necesidades especiales? Lo armamos contigo.</p>
+          <ul class="price-list">
+            <li>Número de equipos a tu medida</li>
+            <li>Facturación a tu empresa</li>
+            <li>Capacitación opcional</li>
+            <li>Atención directa</li>
+          </ul>
+          <a href="mailto:grupoavich@gmail.com?subject=Plan%20personalizado%20AVICH%203D" class="plan-btn plan-btn-ghost">Solicitar cotización</a>
+        </div>
+      </div>
+      <div class="compare-note">💡 El plan anual se paga una vez al año y sale más barato que 12 meses sueltos. Precios en dólares (USD).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ROADMAP ================= -->
+<section id="roadmap">
+  <div class="section-inner">
+    <span class="section-tag">El ecosistema AVICH</span>
+    <h2 class="section-title">AVICH 3D es solo el comienzo</h2>
+    <p class="section-sub">Más extensiones para SketchUp en camino. Clientes actuales tendrán descuentos exclusivos.</p>
+    <div class="roadmap-grid">
+      <div class="road-card active"><span class="road-status s-live">● Disponible ahora</span><h3>AVICH 3D</h3><p>Diseño y fabricación de muebles: generador, estructuras, cajones, puertas, despiece y planos.</p></div>
+      <div class="road-card active"><span class="road-status s-live">● Disponible ahora</span><h3>AVICH Sistemas</h3><p>Mueblería completa: despiece, optimización, planos técnicos, costos, almacén y reportes financieros.</p></div>
+      <div class="road-card"><span class="road-status s-soon">◐ Próximamente</span><h3>AVICH Renders</h3><p>Configuración rápida de materiales y escenas para presentaciones a clientes.</p></div>
+      <div class="road-card"><span class="road-status s-plan">○ Planificado</span><h3>AVICH Clientes</h3><p>CRM integrado: seguimiento de proyectos, cotizaciones y pagos pendientes.</p></div>
+      <div class="road-card"><span class="road-status s-plan">○ Planificado</span><h3>AVICH Estructura</h3><p>Cálculo estructural básico para muebles y carpintería de obra.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section id="faq">
+  <div class="section-inner">
+    <span class="section-tag">Preguntas frecuentes</span>
+    <h2 class="section-title">Resolvemos tus dudas</h2>
+    <div class="faq-list">
+      <details open><summary>¿Qué es exactamente AVICH 3D?</summary><p>Es una extensión que vive dentro de SketchUp y convierte el diseño en fabricación: genera cocinas y closets por módulos, arma la estructura del mueble, crea cajones, puertas y correderas inteligentes, y prepara el despiece, el CNC y los planos de armado. Todo con milímetros exactos y en español.</p></details>
+      <details><summary>¿En qué se diferencia de AVICH Sistemas?</summary><p>AVICH Sistemas se enfoca en la gestión del taller (despiece, almacén, costos y reportes financieros). AVICH 3D se enfoca en el modelado y la fabricación de las piezas dentro de SketchUp: generar muebles, armar estructuras, cajones, herrajes y preparar el corte. Son complementarios y puedes usar ambos.</p></details>
+      <details><summary>¿Con qué versiones de SketchUp funciona?</summary><p>AVICH 3D funciona con versiones recientes de SketchUp (recomendado 2023 o superior) en la versión Pro. Si tienes dudas sobre tu versión, escríbenos a grupoavich@gmail.com y te confirmamos antes de comprar.</p></details>
+      <details><summary>¿Cuál es la diferencia entre Personal y Empresarial?</summary><p>El plan Personal permite usar la licencia en 1 computadora, ideal para quien trabaja solo. El plan Empresarial permite hasta 5 computadoras (mensual) o 6 (anual), pensado para talleres con varios operarios. Si necesitas más equipos, el plan Personalizado se arma a tu medida.</p></details>
+      <details><summary>¿Conviene el plan mensual o el anual?</summary><p>El anual se paga una sola vez al año y sale más barato que 12 pagos mensuales. En el plan Personal ahorras alrededor de $23 al año; en el Empresarial, alrededor de $40. Si quieres probar sin comprometerte, empieza con el mensual y pásate al anual cuando estés seguro.</p></details>
+      <details><summary>¿Cómo se paga y cómo recibo la licencia?</summary><p>Pagas dentro de esta página, de forma segura a través de Paddle, con tarjeta o PayPal. Al terminar, te enviamos tu clave única por correo y también la encuentras siempre en <a href="../mi-cuenta/" style="color:#6C3BAA">Mi cuenta</a>, donde además puedes ver tus computadoras activadas, descargar la última versión y administrar o cancelar tu suscripción.</p></details>
+      <details><summary>¿Puedo cambiar de computadora?</summary><p>Sí. Entra a <a href="../mi-cuenta/" style="color:#6C3BAA">Mi cuenta</a>, quita la computadora anterior y activa tu clave en la nueva. No tiene costo.</p></details>
+      <details><summary>¿Las piezas sirven para el router CNC?</summary><p>Sí. AVICH 3D lee cada pieza con su material, espesor, veta y cantos, y prepara el despiece con optimización de corte y alivios de fresa en las esquinas interiores, listos para exportar a DXF o código G del router.</p></details>
+    </div>
+  </div>
+</section>
+
 </main>
 <footer>
   <div class="footer-inner">
@@ -64,27 +715,30 @@
     <div class="footer-col">
       <h4>Extensiones</h4>
       <a href="../sistemas/">AVICH Sistemas</a>
-      <a href="../3d/">AVICH 3D · Próximamente</a>
+      <a href="../3d/">AVICH 3D</a>
       <a href="../#roadmap">AVICH Renders</a>
       <a href="../#roadmap">AVICH Clientes</a>
       <a href="../#roadmap">AVICH Estructura</a>
     </div>
     <div class="footer-col">
-      <h4>Contacto</h4>
-      <a href="../sistemas/#precios">Precios</a>
-      <a href="../sistemas/#faq">Preguntas frecuentes</a>
+      <h4>AVICH 3D</h4>
+      <a href="#features3d">Qué hace</a>
+      <a href="#showcase3d">Herramientas</a>
+      <a href="#precios">Precios</a>
+      <a href="#faq">Preguntas frecuentes</a>
       <a href="mailto:grupoavich@gmail.com">grupoavich@gmail.com</a>
-      <a href="https://x.com/GrupoAvich" target="_blank" rel="noopener noreferrer">X / Twitter @GrupoAvich</a>
     </div>
   </div>
   <div class="footer-bottom">
-    <span class="footer-copy">© 2025 Grupo AVICH. Todos los derechos reservados.</span>
+    <span class="footer-copy">© 2026 Grupo AVICH. Todos los derechos reservados. · <a href="../mi-cuenta/">Mi cuenta</a> · <a href="../legal/terminos/">Términos</a> · <a href="../legal/privacidad/">Privacidad</a> · <a href="../legal/reembolsos/">Reembolsos</a></span>
     <div class="footer-social">
       <a href="https://x.com/GrupoAvich" target="_blank" rel="noopener noreferrer">@GrupoAvich</a>
       <a href="mailto:grupoavich@gmail.com">grupoavich@gmail.com</a>
     </div>
   </div>
 </footer>
+<script src="../assets/pagos-config.js"></script>
+<script src="../assets/pagos.js"></script>
 <script src="../assets/site.js"></script>
 </body>
 </html>

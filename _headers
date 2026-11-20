@@ -1,0 +1,12 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+
+/mi-cuenta/*
+  Cache-Control: no-store
+
+/admin/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Cache-Control: no-store

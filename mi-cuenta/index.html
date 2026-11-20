@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi cuenta | Grupo AVICH</title>
+<meta name="description" content="Administra tus licencias de AVICH 3D: tu clave, tus equipos, descargas y suscripción.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/webp" href="../assets/logo.webp">
+<link rel="canonical" href="https://grupoavich.vercel.app/mi-cuenta/">
+<meta name="theme-color" content="#6C3BAA">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+:root{--morado:#6C3BAA;--morado2:#8B5CF6;--morado-bg:#F4EEFB}
+body{background:#F7F5F3}
+#cuenta{padding:9rem 1.5rem 5rem;min-height:80vh}
+.box{max-width:860px;margin:0 auto}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.75rem;box-shadow:var(--shadow)}
+.login{max-width:460px;margin:0 auto}
+.login h1,.panel-h h1{font-family:'Space Grotesk',sans-serif;font-size:1.7rem;letter-spacing:-.02em;margin-bottom:.4rem;color:var(--black)}
+.login p.s{color:var(--gray5);font-size:.92rem;margin-bottom:1.25rem}
+.fld{width:100%;padding:.8rem 1rem;border:1.5px solid var(--gray3);border-radius:8px;font:inherit;margin-bottom:.9rem}
+.fld:focus{outline:none;border-color:var(--morado)}
+.btn-m{background:var(--morado);color:#fff;border:none;padding:.8rem 1.4rem;border-radius:8px;font:700 .92rem 'Space Grotesk',sans-serif;cursor:pointer;text-decoration:none;display:inline-block;transition:background .2s}
+.btn-m:hover{background:var(--morado2)}.btn-m[disabled]{opacity:.55;cursor:wait}
+.btn-s{background:#fff;color:var(--gray5);border:1.5px solid var(--gray3);padding:.55rem 1rem;border-radius:8px;font:600 .82rem 'Space Grotesk',sans-serif;cursor:pointer;text-decoration:none;display:inline-block}
+.btn-s:hover{border-color:var(--morado);color:var(--morado)}
+.msg{padding:.8rem 1rem;border-radius:8px;font-size:.9rem;margin-bottom:1rem}
+.msg.ok{background:#E8F9EE;color:#0A5C2E;border:1px solid rgba(22,163,74,.25)}
+.msg.err{background:#FEECEC;color:#9B1C1C;border:1px solid rgba(208,16,16,.2)}
+.msg.info{background:var(--morado-bg);color:#4A2A78;border:1px solid rgba(108,59,170,.2)}
+.panel-h{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.panel-h .em{color:var(--gray5);font-size:.9rem}
+.lic{margin-bottom:1.25rem}
+.lic-top{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+.lic-top h2{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;color:var(--black)}
+.est{font:600 .72rem 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;padding:.25rem .7rem;border-radius:100px}
+.est.ok{background:#E8F9EE;color:#16A34A}.est.warn{background:#FEF3C7;color:#B45309}.est.bad{background:#FEECEC;color:#B91C1C}
+.clave{display:flex;gap:.6rem;align-items:center;background:var(--morado-bg);border-radius:10px;padding:.8rem 1rem;margin-bottom:1rem;flex-wrap:wrap}
+.clave code{font:700 1.05rem 'JetBrains Mono',monospace;letter-spacing:.06em;color:#3B1C66;flex:1;min-width:220px;word-break:break-all}
+.meta{color:var(--gray5);font-size:.88rem;margin-bottom:1rem}
+.eq h3{font:600 .85rem 'Space Grotesk',sans-serif;color:var(--black);margin-bottom:.5rem}
+.eq ul{list-style:none;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.eq li{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.65rem .9rem;font-size:.88rem;border-bottom:1px solid var(--border)}
+.eq li:last-child{border-bottom:none}.eq li small{color:var(--gray4);display:block}
+.eq .vacio{padding:.8rem .9rem;color:var(--gray4);font-size:.88rem}
+.acc{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.1rem}
+.pasos{margin-top:1.5rem}.pasos h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;margin-bottom:.6rem}
+.pasos ol{padding-left:1.2rem;color:var(--gray5);font-size:.9rem;line-height:1.8}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<a href="#main" class="skip-link">Saltar al contenido</a>
+<nav aria-label="Principal">
+  <a href="../" class="nav-logo" aria-label="Grupo AVICH, inicio"><img src="../assets/logo.webp" alt="Grupo AVICH" width="71" height="42"></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="../3d/#features3d">Qué hace AVICH 3D</a></li>
+    <li><a href="../3d/#precios">Precios</a></li>
+    <li><a href="../mi-cuenta/" class="nav-current" aria-current="page">Mi cuenta</a></li>
+    <li class="has-sub"><button class="sub-toggle" type="button" aria-expanded="false" aria-controls="subExt">Extensiones</button>
+      <ul class="sub" id="subExt">
+        <li><a href="../sistemas/">AVICH Sistemas <span class="chip chip-live">Disponible</span></a></li>
+        <li><a href="../3d/">AVICH 3D <span class="chip chip-live">Disponible</span></a></li>
+      </ul></li>
+  </ul>
+  <div class="nav-right"><a href="../3d/#precios" class="nav-cta" style="background:#6C3BAA">Ver planes →</a>
+  <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navLinks" aria-label="Abrir menú"><span></span><span></span><span></span></button></div>
+</nav>
+<main id="main"><section id="cuenta"><div class="box">
+
+<div id="estado-carga" class="card login"><p class="s" style="margin:0">Cargando tu cuenta…</p></div>
+
+<div id="vista-login" class="card login hide">
+  <h1>Mi cuenta</h1>
+  <p class="s">Escribe el correo con el que compraste AVICH 3D. Te enviaremos un enlace para entrar, sin contraseña.</p>
+  <div id="aviso-compra" class="msg ok hide">🎉 ¡Gracias por tu compra! Te enviamos tu clave por correo. Para verla aquí, entra con ese mismo correo.</div>
+  <div id="login-msg" class="msg hide"></div>
+  <form id="f-login" novalidate>
+    <label for="email" class="s" style="display:block;margin-bottom:.35rem">Correo electrónico</label>
+    <input id="email" class="fld" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com" required>
+    <button class="btn-m" type="submit" id="b-login">Enviarme el enlace</button>
+  </form>
+  <p class="s" style="margin-top:1.1rem;margin-bottom:0">¿Aún no tienes licencia? <a href="../3d/#precios" style="color:var(--morado);font-weight:600">Ver planes</a></p>
+</div>
+
+<div id="vista-panel" class="hide">
+  <div class="panel-h">
+    <div><h1>Mi cuenta</h1><div class="em" id="p-email"></div></div>
+    <button class="btn-s" id="b-salir" type="button">Cerrar sesión</button>
+  </div>
+  <div id="panel-msg" class="msg hide"></div>
+  <div id="lista"></div>
+  <div class="card pasos">
+    <h2>Cómo activar tu licencia en SketchUp</h2>
+    <ol><li>Instala la extensión <b>AVICH 3D</b> (descárgala arriba) en SketchUp.</li>
+    <li>Abre el panel <b>Avich 3D</b> y elige <b>Activar licencia</b>.</li>
+    <li>Pega tu clave y listo. Cada computadora activada cuenta dentro del límite de tu plan.</li>
+    <li>Para cambiar de computadora, quita la anterior aquí en <b>Mi cuenta</b> y activa la nueva.</li></ol>
+  </div>
+</div>
+
+</div></section></main>
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo"><img src="../assets/logo.webp" alt="Grupo AVICH" width="84" height="50" loading="lazy"></div>
+      <p class="footer-tagline">Extensiones profesionales para SketchUp. Diseñadas para carpinteros, diseñadores y fabricantes de muebles.</p>
+    </div>
+    <div class="footer-col"><h4>Extensiones</h4><a href="../sistemas/">AVICH Sistemas</a><a href="../3d/">AVICH 3D</a></div>
+    <div class="footer-col"><h4>Cuenta y legal</h4><a href="../mi-cuenta/">Mi cuenta</a><a href="../legal/terminos/">Términos y condiciones</a><a href="../legal/privacidad/">Privacidad</a><a href="../legal/reembolsos/">Reembolsos</a><a href="mailto:grupoavich@gmail.com">grupoavich@gmail.com</a></div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2026 Grupo AVICH. Todos los derechos reservados.</span>
+    <div class="footer-social"><a href="https://x.com/GrupoAvich" target="_blank" rel="noopener noreferrer">@GrupoAvich</a><a href="mailto:grupoavich@gmail.com">grupoavich@gmail.com</a></div>
+  </div>
+</footer>
+<script src="../assets/site.js"></script>
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  function api(accion,datos){
+    var o={accion:accion}; for(var k in (datos||{})) o[k]=datos[k];
+    return fetch('/api/cuenta',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(o)})
+      .then(function(r){return r.json().catch(function(){return {}}).then(function(j){j.status=r.status;return j})})
+      .catch(function(){return {ok:false,motivo:'red',status:0}});
+  }
+  function ver(id){['estado-carga','vista-login','vista-panel'].forEach(function(x){$(x).classList.toggle('hide',x!==id)})}
+  function aviso(el,tipo,txt){el.className='msg '+tipo;el.textContent=txt}
+  function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+  function fecha(ms){return new Date(ms).toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'})}
+  function errTxt(m){return {demasiados_intentos:'Demasiados intentos. Espera un rato y vuelve a probar.',correo_invalido:'Revisa que el correo esté bien escrito.',red:'No pudimos conectar. Revisa tu internet e inténtalo otra vez.'}[m]||'Algo salió mal. Inténtalo otra vez.'}
+
+  function tarjeta(l,data){
+    var c=el('div','card lic'),top=el('div','lic-top');
+    top.appendChild(el('h2',null,'AVICH 3D · '+l.plan+' '+l.periodo));
+    var cls='ok',txt='Activa';
+    if(!l.vigente){cls='bad';txt=l.estado==='pausada'?'Pausada':'Vencida'}
+    else if(l.estado==='pago_pendiente'){cls='warn';txt='Pago pendiente'}
+    else if(l.estado==='cancelada'){cls='warn';txt='Cancelada'}
+    top.appendChild(el('span','est '+cls,txt)); c.appendChild(top);
+
+    var k=el('div','clave'),code=el('code',null,l.clave),cp=el('button','btn-s','Copiar');cp.type='button';
+    cp.onclick=function(){(navigator.clipboard?navigator.clipboard.writeText(l.clave):Promise.reject()).then(function(){cp.textContent='¡Copiada!';setTimeout(function(){cp.textContent='Copiar'},1800)}).catch(function(){window.prompt('Copia tu clave:',l.clave)})};
+    k.appendChild(code);k.appendChild(cp);c.appendChild(k);
+
+    var meta=l.estado==='cancelada'?(l.vigente?'No se renovará. Puedes usarla hasta el '+fecha(l.expira)+'.':'Terminó el '+fecha(l.expira)+'.')
+      :(l.vigente?'Se renueva el '+fecha(l.expira)+'.':'Venció el '+fecha(l.expira)+'.');
+    if(l.estado==='pago_pendiente')meta='No pudimos cobrar tu renovación. Actualiza tu método de pago en “Administrar suscripción”.';
+    c.appendChild(el('p','meta',meta));
+
+    var eq=el('div','eq');eq.appendChild(el('h3',null,'Computadoras activadas: '+l.equipos.length+' de '+l.maxEquipos));
+    var ul=el('ul');
+    if(!l.equipos.length)ul.appendChild(el('li','vacio','Todavía no activaste ninguna computadora.'));
+    l.equipos.forEach(function(e){
+      var li=el('li'),d=el('div');d.appendChild(el('span',null,e.nombre));d.appendChild(el('small',null,'Desde '+fecha(e.desde)));
+      var b=el('button','btn-s','Quitar');b.type='button';
+      b.onclick=function(){if(!confirm('¿Quitar “'+e.nombre+'”? Dejará de poder usar la licencia.'))return;b.disabled=true;
+        api('quitar_equipo',{clave:l.clave,equipo_id:e.id}).then(function(r){if(r.ok)cargar();else{b.disabled=false;aviso($('panel-msg'),'err',errTxt(r.motivo))}})};
+      li.appendChild(d);li.appendChild(b);ul.appendChild(li)});
+    eq.appendChild(ul);c.appendChild(eq);
+
+    var acc=el('div','acc');
+    if(l.vigente){var d=el('a','btn-m','Descargar AVICH 3D'+(data.version?' '+data.version:''));d.href='/api/cuenta?accion=descargar';acc.appendChild(d)}
+    if(l.gestionable){var g=el('button','btn-s','Administrar suscripción');g.type='button';
+      g.onclick=function(){g.disabled=true;api('portal').then(function(r){g.disabled=false;if(r.ok&&r.url)window.location.href=r.url;else aviso($('panel-msg'),'err','No pudimos abrir el portal. Escríbenos a grupoavich@gmail.com.')})};
+      acc.appendChild(g)}
+    c.appendChild(acc);return c;
+  }
+
+  function cargar(){
+    return api('datos').then(function(r){
+      if(r.status===401){ver('vista-login');return}
+      if(!r.ok){ver('vista-login');aviso($('login-msg'),'err',errTxt(r.motivo));return}
+      $('p-email').textContent=r.email;var l=$('lista');l.textContent='';
+      if(!r.licencias.length)l.appendChild(el('div','card',''  )).textContent='Aún no tienes licencias en esta cuenta.';
+      r.licencias.forEach(function(x){l.appendChild(tarjeta(x,r))});
+      if(/compra=ok/.test(location.search))aviso($('panel-msg'),'ok','¡Gracias por tu compra! Tu licencia ya está lista.');
+      ver('vista-panel');
+    });
+  }
+
+  $('f-login').addEventListener('submit',function(ev){
+    ev.preventDefault();var m=$('login-msg'),b=$('b-login');b.disabled=true;
+    api('login',{email:$('email').value.trim()}).then(function(r){b.disabled=false;
+      if(r.ok)aviso(m,'info','Si ese correo tiene una licencia, te enviamos un enlace para entrar. Revisa tu bandeja (y spam). Vale 15 minutos.');
+      else aviso(m,'err',errTxt(r.motivo))})});
+  $('b-salir').addEventListener('click',function(){api('salir').then(function(){ver('vista-login')})});
+
+  var p=new URLSearchParams(location.search),t=p.get('t');
+  if(p.get('compra')==='ok')$('aviso-compra').classList.remove('hide');
+  if(t){history.replaceState(null,'',location.pathname);
+    api('sesion',{token:t}).then(function(r){if(r.ok)cargar();else{ver('vista-login');aviso($('login-msg'),'err','Ese enlace ya se usó o venció. Pide uno nuevo.')}})}
+  else cargar();
+})();
+</script>
+</body></html>
