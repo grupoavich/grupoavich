@@ -6,7 +6,7 @@ import * as ses from '../_lib/sistemas/sesion.js';
 import { getStorage } from '../_lib/sistemas/almacen.js';
 import { leer, guardar, idValido, nombreArchivoSeguro, TIPOS, ARCHIVOS } from '../_lib/sistemas/catalogo.js';
 import * as rel from '../_lib/sistemas/release.js';
-import { firmar } from '../_lib/sistemas/firma.js';
+import { firmar, formaClave } from '../_lib/sistemas/firma.js';
 import { sha256hex } from '../_lib/cripto.js';
 import { redis } from '../_lib/redis.js';
 
@@ -79,7 +79,7 @@ export async function onRequest({ request, env }) {
         almacen = g && new TextDecoder().decode(g) === 'ok' ? { ok: true } : { ok: false, detalle: 'Se escribió pero no se pudo leer' };
       } catch (e) { almacen = { ok: false, detalle: String(e.name + ': ' + e.message).replace(/[\u0000-\u001f]/g, ' ').slice(0, 220) }; }
       let firma = { ok: false };
-      try { await firmar(env, 'prueba'); firma = { ok: true }; } catch (e) { firma = { ok: false, detalle: String(e.message).slice(0, 120) }; }
+      try { await firmar(env, 'prueba'); firma = { ok: true }; } catch (e) { firma = { ok: false, detalle: String(e.message).slice(0, 120) + ' | ' + formaClave(env) }; }
       let url = null;
       if (st) try { url = await st.presignPut('diagnostico/navegador.txt', 'text/plain', 300); } catch (e) { /* ya se verá en almacen */ }
       return json({ faltan, avisos, almacen, firma, url, almacenamiento: 'r2' });
