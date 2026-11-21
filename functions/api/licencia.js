@@ -3,6 +3,7 @@
 import { json, leerJson, ipDe, limitar } from '../_lib/util.js';
 import * as L from '../_lib/licencias.js';
 import { enlaceDescarga } from '../_lib/r2.js';
+import * as R3 from '../_lib/release3d.js';
 
 function cmpVersion(a, b) { // >0 si a > b
   const pa = String(a || '0').split('.').map(Number), pb = String(b || '0').split('.').map(Number);
@@ -52,10 +53,11 @@ export async function onRequest({ request, env }) {
     if (b.accion === 'validar') return json(Object.assign({ ok: true, usados: lic.equipos.length, aviso: ev.motivo }, resumen));
     if (b.accion === 'version') {
       if (producto !== '3d') return json({ ok: false, motivo: 'usa_api_actualizacion' });
-      const actual = env.AVICH_VERSION_ACTUAL || '';
+      const v3 = await R3.actual(env);
+      const actual = v3.version || '';
       const hay = !!actual && cmpVersion(actual, b.version) > 0;
-      const url = hay ? await enlaceDescarga(env, env.AVICH_ARCHIVO_R2 || 'avich_3d.rbz', `avich_3d_${actual}.rbz`) : null;
-      return json({ ok: true, hay_nueva: hay && !!url, version: actual, notas: env.AVICH_NOTAS_VERSION || '', url });
+      const url = hay ? await enlaceDescarga(env, v3.objeto, `avich_3d_${actual}.rbz`) : null;
+      return json({ ok: true, hay_nueva: hay && !!url, version: actual, notas: v3.notas, url });
     }
     return json({ ok: false, motivo: 'accion_desconocida' }, 400);
   } catch (e) {
