@@ -25,7 +25,10 @@ async function importar(pem) {
   if (/ENCRYPTED/.test(pem)) throw new Error('SIGNING_PRIVATE_KEY está protegida con contraseña; usa una sin contraseña');
   const esPkcs1 = /BEGIN RSA PRIVATE KEY/.test(pem);
   // Solo quedan los caracteres base64 (se ignoran comillas, saltos, espacios y \n escritos a mano).
-  const b64 = pem.replace(/-----[^-]+-----/g, '').replace(/\\n/g, '').replace(/[^A-Za-z0-9+\/=]/g, '');
+  // Si hay cabecera y pie, se toma solo lo que está entre ellos (ignora texto sobrante antes o después).
+  const bloque = pem.match(/-----BEGIN [A-Z ]*PRIVATE KEY-----([\s\S]*?)-----END [A-Z ]*PRIVATE KEY-----/);
+  const cuerpo = bloque ? bloque[1] : pem.replace(/-----[^-]+-----/g, '');
+  const b64 = cuerpo.replace(/\\n/g, '').replace(/[^A-Za-z0-9+\/]/g, '');
   let der = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
   if (esPkcs1) der = pkcs1aPkcs8(der);
   const k = await crypto.subtle.importKey('pkcs8', der, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
@@ -40,4 +43,12 @@ export async function firmar(env, texto) {
   const sig = new Uint8Array(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', k, te.encode(texto)));
   let s = ''; for (let i = 0; i < sig.length; i++) s += String.fromCharCode(sig[i]);
   return btoa(s);
+}
+
+// Describe la forma de la clave SIN revelarla (para el Diagnóstico).
+export function formaClave(env) {
+  const t = cfg(env).privateKey();
+  const b = t.match(/-----BEGIN ([A-Z ]*)-----([\s\S]*?)-----END ([A-Z ]*)-----/);
+  const cuerpo = (b ? b[2] : t).replace(/\\n/g, '').replace(/[^A-Za-z0-9+\/]/g, '');
+  return 'largo ' + t.length + ', ' + (b ? 'cabecera "' + b[1] + '"' : 'SIN cabecera BEGIN/END') + ', base64 ' + cuerpo.length + ' (resto ' + (cuerpo.length % 4) + ')';
 }
