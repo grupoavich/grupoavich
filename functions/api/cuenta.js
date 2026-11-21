@@ -5,6 +5,7 @@ import * as S from '../_lib/sesion.js';
 import * as L from '../_lib/licencias.js';
 import { enviar, correoEnlace } from '../_lib/correo.js';
 import { enlaceDescarga } from '../_lib/r2.js';
+import * as R3 from '../_lib/release3d.js';
 import { api } from '../_lib/paddle.js';
 
 function mismoOrigen(request) { // defensa extra contra CSRF en POST
@@ -49,9 +50,10 @@ export async function onRequest({ request, env }) {
     const lics = await L.porEmail(env, email);
 
     if (accion === 'datos') {
+      const v3 = await R3.actual(env);
       return json({
         ok: true, email, licencias: lics.map((l) => L.publica(env, l)),
-        version: env.AVICH_VERSION_ACTUAL || null, notas: env.AVICH_NOTAS_VERSION || '',
+        version: v3.version || null, notas: v3.notas,
       });
     }
 
@@ -67,8 +69,8 @@ export async function onRequest({ request, env }) {
       const prod = url.searchParams.get('producto') === 'sistemas' ? 'sistemas' : '3d';
       if (!lics.some((l) => L.productoDe(l) === prod && L.evaluar(env, l).valida)) return json({ ok: false, motivo: 'sin_licencia_vigente' }, 403);
       if (prod === 'sistemas') return new Response(null, { status: 302, headers: { Location: '/api/instalador', 'Cache-Control': 'no-store' } });
-      const v = env.AVICH_VERSION_ACTUAL || 'ultima';
-      const u = await enlaceDescarga(env, env.AVICH_ARCHIVO_R2 || 'avich_3d.rbz', `avich_3d_${v}.rbz`);
+      const v3 = await R3.actual(env);
+      const u = await enlaceDescarga(env, v3.objeto, `avich_3d_${v3.version || 'ultima'}.rbz`);
       if (!u) return json({ ok: false, motivo: 'descarga_no_configurada' }, 503);
       return new Response(null, { status: 302, headers: { Location: u, 'Cache-Control': 'no-store' } });
     }
