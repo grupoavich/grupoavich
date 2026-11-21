@@ -46,6 +46,20 @@
     <div id="diagTxt" style="white-space:pre-wrap;font-size:13px;line-height:1.7"></div>
   </div>
 
+  <div class="card" id="licCard">
+    <h2>Licencias (pruebas y soporte)</h2>
+    <div class="hint" style="margin:0 0 8px">Crea una licencia de prueba sin pagar, consúltala, revócala o quita un equipo. Las compras reales las crea Paddle solas.</div>
+    <div class="row" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr">
+      <input id="licEmail" placeholder="correo@cliente.com">
+      <select id="licProd"><option value="sistemas">AVICH Sistemas</option><option value="3d">AVICH 3D</option></select>
+      <input id="licPlan" value="Prueba" placeholder="Plan">
+      <input id="licEq" type="number" min="1" value="1" title="Equipos permitidos">
+      <input id="licDias" type="number" min="1" value="30" title="Días de vigencia">
+    </div>
+    <div style="margin:10px 0;display:flex;gap:10px"><button id="btnLicCrear">Crear licencia de prueba</button></div>
+    <div class="row" style="grid-template-columns:3fr auto auto"><input id="licClave" placeholder="AVICH-XXXX-XXXX-XXXX-XXXX"><button class="sec" id="btnLicVer">Consultar</button><button class="sec" id="btnLicRev">Revocar</button></div>
+    <pre id="licOut" style="white-space:pre-wrap;margin:10px 0 0;color:var(--dim)"></pre>
+  </div>
   <div class="card">
     <h2 id="tituloForm">Agregar contenido</h2>
     <div class="row">
@@ -301,6 +315,13 @@ $('btnQuitarRelease').onclick = function(){
   if(!confirm('¿Quitar la actualización publicada? Los clientes dejarán de verla.')) return;
   api('quitar_release',{}).then(function(){ aviso('Quitada'); cargar(); });
 };
+
+// Licencias de prueba / soporte
+function licTxt(l){ return l.clave+'\n'+l.producto+' · '+l.plan+' ('+l.periodo+') · '+l.email+'\nestado: '+l.estado+' · vigente: '+(l.vigente?'sí':'no ('+l.motivo+')')+' · vence: '+new Date(l.expira).toLocaleDateString('es-PE')+'\nequipos '+l.equipos.length+'/'+l.maxEquipos+(l.equipos.length?': '+l.equipos.map(function(e){return e.nombre+' ['+e.id+']';}).join(', '):''); }
+function licRes(r){ if(r.estado!==200){ $('licOut').textContent='Error: '+(r.json.error||r.estado); return; } $('licOut').textContent=licTxt(r.json.licencia); $('licClave').value=r.json.licencia.clave; }
+$('btnLicCrear').onclick=function(){ api('licencia_crear',{email:$('licEmail').value,producto:$('licProd').value,plan:$('licPlan').value,maxEquipos:$('licEq').value,dias:$('licDias').value}).then(licRes); };
+$('btnLicVer').onclick=function(){ api('licencia_ver',{clave:$('licClave').value}).then(licRes); };
+$('btnLicRev').onclick=function(){ if(!confirm('¿Revocar esta licencia?')) return; api('licencia_revocar',{clave:$('licClave').value}).then(licRes); };
 
 // Diagnóstico: revisa variables, conexión del servidor con R2, la firma y el CORS desde ESTE navegador
 $('btnDiag').onclick = function(){
