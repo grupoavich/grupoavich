@@ -148,3 +148,4 @@ node tools/licencias.mjs revocar AVICH-XXXX-XXXX-XXXX-XXXX
 - **Yape** no es posible con Paddle.
 - Si más adelante quieres precios regionales o impuestos distintos, se configuran en Paddle, no en el código.
 
+
