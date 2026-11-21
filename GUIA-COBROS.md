@@ -147,3 +147,4 @@ node tools/licencias.mjs revocar AVICH-XXXX-XXXX-XXXX-XXXX
 - Las etiquetas `canonical`/`og:url` de las páginas aún dicen `grupoavich.vercel.app`; cuando tengas tu dominio definitivo, cámbialas.
 - **Yape** no es posible con Paddle.
 - Si más adelante quieres precios regionales o impuestos distintos, se configuran en Paddle, no en el código.
+
