@@ -28,7 +28,9 @@ export async function onRequest({ request, env }) {
     if (String(b.producto || '3d') !== producto) return json({ ok: false, motivo: 'clave_de_otro_producto', producto });
     lic.equipos = lic.equipos || [];
     const i = lic.equipos.findIndex((e) => e.id === equipoId);
-    const resumen = { producto, plan: lic.plan, periodo: lic.periodo, expira: lic.expira, max_equipos: lic.maxEquipos };
+    // 'vence' es el texto que muestran los paneles de las extensiones (fecha legible o vitalicia).
+    const vence = lic.expira >= L.FUTURO_LEJANO - 365 * L.DIA ? 'Vitalicia (sin vencimiento)' : new Date(lic.expira).toISOString().slice(0, 10);
+    const resumen = { producto, plan: lic.plan, periodo: lic.periodo, expira: lic.expira, vence, max_equipos: lic.maxEquipos };
 
     if (b.accion === 'activar') {
       const nombre = String(b.equipo_nombre || 'Equipo').slice(0, 60);
