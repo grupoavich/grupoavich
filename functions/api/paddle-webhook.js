@@ -1,7 +1,8 @@
 // Webhook de Paddle -> crea/renueva/actualiza licencias.
 // En Paddle: Developer Tools > Notifications > nuevo destino: https://TU-DOMINIO/api/paddle-webhook
 // Eventos: transaction.completed, subscription.created, subscription.activated, subscription.updated,
-//          subscription.canceled, subscription.past_due, subscription.paused, subscription.resumed
+//          subscription.canceled, subscription.past_due, subscription.paused, subscription.resumed,
+//          adjustment.created, adjustment.updated   (reembolsos / contracargos)
 import { redis } from '../_lib/redis.js';
 import { json, baseUrl } from '../_lib/util.js';
 import { verificarFirma, emailDeCliente } from '../_lib/paddle.js';
@@ -19,23 +20,41 @@ function fechaOFuturo(iso, periodo) {
 async function transaccionCompletada(env, request, d) {
   const precio = d.items && d.items[0] && d.items[0].price && d.items[0].price.id;
   const plan = L.planPorPrecio(env, precio);
-  if (!plan) { console.log('[webhook] precio ajeno a AVICH 3D, se ignora:', precio); return; }
-  const expira = fechaOFuturo(d.billing_period && d.billing_period.ends_at, plan.periodo);
+  if (!plan) { console.log('[webhook] precio ajeno a nuestros planes, se ignora:', precio); return; }
+  const vitalicio = plan.periodo === 'vitalicio';
+  const expira = vitalicio ? L.FUTURO_LEJANO : fechaOFuturo(d.billing_period && d.billing_period.ends_at, plan.periodo);
   const existente = d.subscription_id ? await L.porSuscripcion(env, d.subscription_id) : null;
   if (existente) { // renovación
     existente.expira = expira; existente.estado = 'activa';
-    existente.plan = plan.plan; existente.periodo = plan.periodo; existente.maxEquipos = plan.maxEquipos;
+    existente.plan = plan.plan; existente.periodo = plan.periodo; existente.maxEquipos = plan.maxEquipos; existente.producto = plan.producto;
     await L.guardar(env, existente);
+    if (d.id) await redis(env, 'SET', 'txn:' + d.id, existente.clave);
     return;
   }
   const email = await emailDeCliente(env, d.customer_id);
   const lic = {
-    clave: L.nuevaClave(), email: email.toLowerCase(), plan: plan.plan, periodo: plan.periodo, maxEquipos: plan.maxEquipos,
+    clave: L.nuevaClave(), producto: plan.producto, email: email.toLowerCase(), plan: plan.plan, periodo: plan.periodo, maxEquipos: plan.maxEquipos,
     estado: 'activa', suscripcion: d.subscription_id || null, cliente: d.customer_id, expira, equipos: [], creada: Date.now(),
   };
+  if (vitalicio) lic.actualizaciones_hasta = Date.now() + 366 * L.DIA; // "acceso permanente + actualizaciones 12 meses"
   await L.guardar(env, lic);
-  const c = correoLicencia({ clave: lic.clave, plan: lic.plan, periodo: lic.periodo, maxEquipos: lic.maxEquipos, urlCuenta: baseUrl(env, request) + '/mi-cuenta/' });
+  if (d.id) await redis(env, 'SET', 'txn:' + d.id, lic.clave);
+  const base = baseUrl(env, request);
+  const c = correoLicencia({ clave: lic.clave, plan: lic.plan, periodo: lic.periodo, maxEquipos: lic.maxEquipos, urlCuenta: base + '/mi-cuenta/', producto: plan.producto, urlDescarga: plan.producto === 'sistemas' ? base + '/api/instalador' : null });
   await enviar(env, { para: email, asunto: c.asunto, html: c.html, texto: c.texto });
+}
+
+// Reembolso total aprobado o contracargo -> se revoca la licencia de esa transacción.
+async function ajusteCambio(env, d) {
+  const accion = String(d.action || ''), aprobado = d.status === 'approved';
+  if (!aprobado || !/^(refund|chargeback|chargeback_warranty)$/.test(accion)) return;
+  if (accion === 'refund' && d.type !== 'full') return; // los reembolsos parciales no revocan
+  const clave = d.transaction_id ? await redis(env, 'GET', 'txn:' + d.transaction_id) : null;
+  if (!clave) return;
+  const lic = await L.obtener(env, clave);
+  if (!lic || lic.estado === 'revocada') return;
+  lic.estado = 'revocada';
+  await L.guardar(env, lic);
 }
 
 async function suscripcionCambio(env, d) {
@@ -46,7 +65,7 @@ async function suscripcionCambio(env, d) {
   if (fin && d.status !== 'canceled') lic.expira = fechaOFuturo(fin, lic.periodo);
   const precio = d.items && d.items[0] && d.items[0].price && d.items[0].price.id;
   const plan = L.planPorPrecio(env, precio);
-  if (plan) { lic.plan = plan.plan; lic.periodo = plan.periodo; lic.maxEquipos = plan.maxEquipos; }
+  if (plan) { lic.plan = plan.plan; lic.periodo = plan.periodo; lic.maxEquipos = plan.maxEquipos; lic.producto = plan.producto; }
   await L.guardar(env, lic);
 }
 
@@ -63,6 +82,7 @@ export async function onRequest({ request, env }) {
     if (!nuevo) return json({ ok: true, duplicado: true });
     if (ev.event_type === 'transaction.completed') await transaccionCompletada(env, request, ev.data);
     else if (/^subscription\./.test(ev.event_type)) await suscripcionCambio(env, ev.data);
+    else if (/^adjustment\./.test(ev.event_type)) await ajusteCambio(env, ev.data);
     return json({ ok: true });
   } catch (e) {
     console.error('[webhook] error', ev.event_type, e);

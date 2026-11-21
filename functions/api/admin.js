@@ -8,6 +8,7 @@ import { leer, guardar, idValido, nombreArchivoSeguro, TIPOS, ARCHIVOS } from '.
 import * as rel from '../_lib/sistemas/release.js';
 import { firmar } from '../_lib/sistemas/firma.js';
 import { sha256hex } from '../_lib/cripto.js';
+import { redis } from '../_lib/redis.js';
 
 const MAX_PRINCIPAL = 40 * 1024 * 1024, MAX_MINIATURA = 1024 * 1024;
 const MAX_HASH_SERVIDOR = 4 * 1024 * 1024;     // por encima de esto el navegador debe mandar la huella (ahorra CPU)
@@ -61,12 +62,14 @@ export async function onRequest({ request, env }) {
 
     // Diagnóstico: dice qué falta o qué está mal configurado (sin mostrar ningún secreto)
     if (accion === 'diagnostico') {
-      const nombres = ['LS_STORE_ID', 'SIGNING_PRIVATE_KEY', 'ADMIN_PASSWORD', 'SESSION_SECRET', 'R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET'];
+      const nombres = ['SIGNING_PRIVATE_KEY', 'ADMIN_PASSWORD', 'SESSION_SECRET', 'UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN', 'R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET'];
       const faltan = nombres.filter((k) => !String(env[k] || '').trim());
       const avisos = [];
       if (env.R2_ACCOUNT_ID && !/^[0-9a-f]{32}$/i.test(String(env.R2_ACCOUNT_ID))) avisos.push('R2_ACCOUNT_ID no parece un Account ID (deben ser 32 letras y números, sin espacios ni comillas).');
       if (env.R2_BUCKET && String(env.R2_BUCKET) !== String(env.R2_BUCKET).trim()) avisos.push('R2_BUCKET tiene espacios al inicio o al final.');
-      if (env.LS_STORE_ID && !/^\d+$/.test(String(env.LS_STORE_ID).trim())) avisos.push('LS_STORE_ID debe ser solo el número de tu tienda (sin #).');
+      if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) {
+        try { await redis(env, 'PING'); } catch (e) { avisos.push('No se pudo conectar con la base de datos de licencias (Upstash): ' + String(e.message).slice(0, 120)); }
+      }
       let almacen = { ok: false, detalle: 'No se probó' };
       if (!st) almacen = { ok: false, detalle: String(stError && stError.message).slice(0, 220) };
       else try {

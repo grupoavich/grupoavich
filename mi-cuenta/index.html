@@ -134,7 +134,8 @@ body{background:#F7F5F3}
 
   function tarjeta(l,data){
     var c=el('div','card lic'),top=el('div','lic-top');
-    top.appendChild(el('h2',null,'AVICH 3D · '+l.plan+' '+l.periodo));
+    var sis=l.producto==='sistemas',prod=sis?'AVICH Sistemas':'AVICH 3D';
+    top.appendChild(el('h2',null,prod+' · '+l.plan+' '+l.periodo));
     var cls='ok',txt='Activa';
     if(!l.vigente){cls='bad';txt=l.estado==='pausada'?'Pausada':'Vencida'}
     else if(l.estado==='pago_pendiente'){cls='warn';txt='Pago pendiente'}
@@ -162,7 +163,7 @@ body{background:#F7F5F3}
     eq.appendChild(ul);c.appendChild(eq);
 
     var acc=el('div','acc');
-    if(l.vigente){var d=el('a','btn-m','Descargar AVICH 3D'+(data.version?' '+data.version:''));d.href='/api/cuenta?accion=descargar';acc.appendChild(d)}
+    if(l.vigente){var d=el('a','btn-m','Descargar '+prod+(!sis&&data.version?' '+data.version:''));d.href='/api/cuenta?accion=descargar'+(sis?'&producto=sistemas':'');acc.appendChild(d)}
     if(l.gestionable){var g=el('button','btn-s','Administrar suscripción');g.type='button';
       g.onclick=function(){g.disabled=true;api('portal').then(function(r){g.disabled=false;if(r.ok&&r.url)window.location.href=r.url;else aviso($('panel-msg'),'err','No pudimos abrir el portal. Escríbenos a grupoavich@gmail.com.')})};
       acc.appendChild(g)}

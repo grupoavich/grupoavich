@@ -23,9 +23,12 @@ export async function onRequest({ request, env }) {
     const lic = await L.obtener(env, clave);
     const ev = L.evaluar(env, lic);
     if (!ev.valida) return json({ ok: false, motivo: ev.motivo });
+    // Cada clave sirve solo para su producto. Si no se indica 'producto', se asume AVICH 3D (compatibilidad).
+    const producto = L.productoDe(lic);
+    if (String(b.producto || '3d') !== producto) return json({ ok: false, motivo: 'clave_de_otro_producto', producto });
     lic.equipos = lic.equipos || [];
     const i = lic.equipos.findIndex((e) => e.id === equipoId);
-    const resumen = { plan: lic.plan, periodo: lic.periodo, expira: lic.expira, max_equipos: lic.maxEquipos };
+    const resumen = { producto, plan: lic.plan, periodo: lic.periodo, expira: lic.expira, max_equipos: lic.maxEquipos };
 
     if (b.accion === 'activar') {
       const nombre = String(b.equipo_nombre || 'Equipo').slice(0, 60);
@@ -46,6 +49,7 @@ export async function onRequest({ request, env }) {
     if (i < 0) return json({ ok: false, motivo: 'equipo_no_registrado' });
     if (b.accion === 'validar') return json(Object.assign({ ok: true, usados: lic.equipos.length, aviso: ev.motivo }, resumen));
     if (b.accion === 'version') {
+      if (producto !== '3d') return json({ ok: false, motivo: 'usa_api_actualizacion' });
       const actual = env.AVICH_VERSION_ACTUAL || '';
       const hay = !!actual && cmpVersion(actual, b.version) > 0;
       const url = hay ? await enlaceDescarga(env, env.AVICH_ARCHIVO_R2 || 'avich_3d.rbz', `avich_3d_${actual}.rbz`) : null;

@@ -15,14 +15,19 @@ const marco = (titulo, cuerpo) => `<div style="font-family:Arial,sans-serif;max-
 <h2 style="color:#6C3BAA;margin:0 0 12px">${titulo}</h2>${cuerpo}
 <hr style="border:none;border-top:1px solid #eee;margin:24px 0"><p style="font-size:12px;color:#888">Grupo AVICH · grupoavich@gmail.com</p></div>`;
 
-export function correoLicencia({ clave, plan, periodo, maxEquipos, urlCuenta }) {
+export function correoLicencia({ clave, plan, periodo, maxEquipos, urlCuenta, producto, urlDescarga }) {
+  const nombre = producto === 'sistemas' ? 'AVICH Sistemas' : 'AVICH 3D';
+  const donde = producto === 'sistemas' ? 'en la extensión, opción <b>Activar licencia</b>' : 'en el panel <b>Avich 3D &gt; Activar licencia</b>';
+  const dondeTxt = producto === 'sistemas' ? 'en la extensión (opción Activar licencia)' : 'en SketchUp (panel Avich 3D > Activar licencia)';
+  const vit = periodo === 'vitalicio' ? ' · pago único, sin vencimiento (actualizaciones por 12 meses)' : '';
+  const equipos = `hasta ${maxEquipos} computadora${maxEquipos > 1 ? 's' : ''}`;
   return {
-    asunto: 'Tu licencia de AVICH 3D',
-    texto: `Gracias por tu compra.\n\nClave: ${clave}\nPlan: ${plan} ${periodo} (hasta ${maxEquipos} computadora${maxEquipos > 1 ? 's' : ''})\n\nPégala en SketchUp (panel Avich 3D > Activar licencia). También la encuentras en ${urlCuenta}`,
-    html: marco('¡Gracias por tu compra!', `<p>Tu licencia de <b>AVICH 3D</b> está lista.</p>
+    asunto: `Tu licencia de ${nombre}`,
+    texto: `Gracias por tu compra.\n\nClave: ${clave}\nPlan: ${plan} ${periodo} (${equipos})${vit}\n\nPégala ${dondeTxt}. También la encuentras en ${urlCuenta}` + (urlDescarga ? `\nDescarga la extensión: ${urlDescarga}` : ''),
+    html: marco('¡Gracias por tu compra!', `<p>Tu licencia de <b>${nombre}</b> está lista.</p>
 <p style="background:#F4EEFB;border-radius:8px;padding:14px;font:700 18px monospace;letter-spacing:1px;text-align:center">${clave}</p>
-<p>Plan <b>${plan} ${periodo}</b> · hasta <b>${maxEquipos}</b> computadora${maxEquipos > 1 ? 's' : ''}.</p>
-<p>Pégala en SketchUp, en el panel <b>Avich 3D &gt; Activar licencia</b>. También la ves siempre en <a href="${urlCuenta}">Mi cuenta</a>.</p>`),
+<p>Plan <b>${plan} ${periodo}</b> · ${equipos}${vit}.</p>
+<p>Pégala ${donde}. También la ves siempre en <a href="${urlCuenta}">Mi cuenta</a>.</p>` + (urlDescarga ? `<p><a href="${urlDescarga}">Descargar la extensión</a></p>` : '')),
   };
 }
 

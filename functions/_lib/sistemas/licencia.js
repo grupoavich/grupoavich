@@ -1,39 +1,31 @@
+// Validación de licencias de AVICH Sistemas con TU base de datos (Upstash), alimentada por Paddle.
+// Ya no depende de Lemon Squeezy. La extensión manda { licencia, instancia }:
+//   licencia  = clave AVICH-XXXX-XXXX-XXXX-XXXX
+//   instancia = id del equipo, el mismo con el que se activó en POST /api/licencia (producto:'sistemas')
 import { cfg } from './config.js';
 import { sha256hex, iguales } from '../cripto.js';
+import * as L from '../licencias.js';
 
 const cache = new Map();
-const TTL_OK = 10 * 60 * 1000, TTL_MAL = 60 * 1000;
+const TTL_OK = 60 * 1000, TTL_MAL = 15 * 1000;
 
-// Valida una clave con la API pública de licencias de Lemon Squeezy. Devuelve { ok, motivo }.
-// Solo es válida si pertenece a TU tienda (LS_STORE_ID).
+// Devuelve { ok, motivo, actualizacionesHasta }.
 export async function validar(env, clave, instancia) {
-  const c0 = cfg(env);
-  clave = String(clave || '').trim();
+  clave = L.normalizarClave(clave);
   if (!clave) return { ok: false, motivo: 'sin_clave' };
-  if (!c0.lsStoreId()) return { ok: false, motivo: 'servidor_sin_configurar' };
+  if (!/^AVICH(-[A-Z0-9]{4}){4}$/.test(clave)) return { ok: false, motivo: 'invalida' };
   const ck = clave + '|' + String(instancia || '');
   const c = cache.get(ck);
   if (c && c.exp > Date.now()) return c.val;
-  const cuerpo = new URLSearchParams({ license_key: clave });
-  if (instancia) cuerpo.set('instance_id', String(instancia));
-  let j;
-  try {
-    const r = await fetch(c0.lsValidateUrl(), {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: cuerpo,
-      signal: AbortSignal.timeout(8000),
-    });
-    j = await r.json();
-  } catch (e) {
-    return { ok: false, motivo: 'red' };           // sin caché: se reintenta en la próxima
-  }
-  const tienda = String((j && j.meta && j.meta.store_id) || '');
+  let lic;
+  try { lic = await L.obtener(env, clave); } catch (e) { console.error('licencia:', e.message); return { ok: false, motivo: 'red' }; }
   let val;
-  if (j && j.valid === true) {
-    val = tienda === c0.lsStoreId() ? { ok: true, motivo: null } : { ok: false, motivo: 'otra_tienda' };
-  } else {
-    val = { ok: false, motivo: 'invalida' };
+  if (!lic || L.productoDe(lic) !== 'sistemas') val = { ok: false, motivo: 'invalida' };
+  else {
+    const ev = L.evaluar(env, lic);
+    if (!ev.valida) val = { ok: false, motivo: ev.motivo };
+    else if (!instancia || !(lic.equipos || []).some((e) => e.id === String(instancia))) val = { ok: false, motivo: 'equipo_no_registrado' };
+    else val = { ok: true, motivo: null, actualizacionesHasta: lic.actualizaciones_hasta || null };
   }
   cache.set(ck, { val, exp: Date.now() + (val.ok ? TTL_OK : TTL_MAL) });
   if (cache.size > 2000) for (const [k, v] of cache) if (v.exp < Date.now()) cache.delete(k);

@@ -175,7 +175,7 @@ module Avich3D
         http.read_timeout = 15
         req = Net::HTTP::Post.new(uri.request_uri, 'Content-Type' => 'application/json')
         req.body = JSON.generate({ 'accion' => accion, 'clave' => clave_licencia.to_s, 'equipo_id' => equipo_id,
-                                   'equipo_nombre' => nombre_equipo }.merge(extra))
+                                   'equipo_nombre' => nombre_equipo, 'producto' => '3d' }.merge(extra))
         resp = http.request(req)
         return { red: true } if resp.code.to_i >= 500 || resp.code.to_i == 429
         datos = JSON.parse(resp.body.to_s)

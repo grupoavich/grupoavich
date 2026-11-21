@@ -54,9 +54,10 @@ Cada vez que publiques versión nueva: sube el .rbz a R2 y cambia `AVICH_VERSION
 Usa primero el entorno de pruebas (sandbox-vendors.paddle.com); mismos pasos luego en producción.
 1. **Catalog → Products**: crea el producto "AVICH 3D" con 4 **precios recurrentes** (USD):
    Personal mensual 6.99 · Personal anual 60.99 · Empresarial mensual 29.99 · Empresarial anual 319.99. Copia cada ID (`pri_…`).
+   Crea también el producto **"AVICH Sistemas"** con 4 precios: Personal mensual 4.99 (recurrente) · Personal **vitalicio** 34.99 (**pago único**) · Empresa mensual 17.99 (recurrente) · Empresa **vitalicio** 119 (**pago único**). Copia esos 4 IDs también.
 2. **Developer Tools → Authentication**: crea una **API key** (servidor) y un **Client-side token** (público).
 3. **Developer Tools → Notifications**: nuevo destino `https://TU-DOMINIO/api/paddle-webhook` con los eventos
-   `transaction.completed`, `subscription.created`, `subscription.activated`, `subscription.updated`, `subscription.canceled`, `subscription.past_due`, `subscription.paused`, `subscription.resumed`. Copia el **secret** del destino.
+   `transaction.completed`, `subscription.created`, `subscription.activated`, `subscription.updated`, `subscription.canceled`, `subscription.past_due`, `subscription.paused`, `subscription.resumed`, y además **`adjustment.created`** y **`adjustment.updated`** (reembolsos y contracargos: revocan la licencia automáticamente). Copia el **secret** del destino.
 4. **Checkout → Checkout settings**: pon como *Default payment link* `https://TU-DOMINIO/mi-cuenta/`.
 
 ## Paso 7 — Variables en Cloudflare (Pages → tu proyecto → Settings → Variables and Secrets)
@@ -72,20 +73,27 @@ Agrégalas en **Production** (y en Preview si quieres probar ahí). Las claves s
 | `RESEND_API_KEY`, `MAIL_FROM` | del paso 4 |
 | `R2_*`, `AVICH_ARCHIVO_R2`, `AVICH_VERSION_ACTUAL` | del paso 5 |
 | `SITE_URL` (opcional) | `https://tu-dominio` (para los enlaces de los correos) |
-| **AVICH Sistemas** (copia los **mismos valores** que ya tienes en Vercel) | `LS_STORE_ID`, `SIGNING_PRIVATE_KEY`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `BIBLIOTECA_CLAVE`, `MIN_EXTENSION`, y los `R2_*` (los mismos del paso 5) |
+| `PADDLE_PRICE_SIS_PERSONAL_MENSUAL` / `_SIS_PERSONAL_VITALICIO` / `_SIS_EMPRESA_MENSUAL` / `_SIS_EMPRESA_VITALICIO` | los 4 `pri_…` de **AVICH Sistemas** (paso 6) |
+| **AVICH Sistemas** (mismos valores que tenías en Vercel) | `SIGNING_PRIVATE_KEY` (¡la MISMA de siempre!), `ADMIN_PASSWORD`, `SESSION_SECRET`, `BIBLIOTECA_CLAVE`, `MIN_EXTENSION`, y los `R2_*`. **Ya no se usa `LS_STORE_ID`.** |
 
 Después de guardar, haz **Retry deployment** (o un nuevo commit).
 
 ## Paso 8 — Activar el checkout en la página
-Edita `assets/pagos-config.js`: pon `entorno: 'sandbox'`, tu `tokenCliente` y los 4 `pri_…`. Sube el cambio.
+Edita `assets/pagos-config.js`: pon `entorno: 'sandbox'`, tu `tokenCliente` y los 8 `pri_…` (4 de AVICH 3D y 4 de AVICH Sistemas). Sube el cambio.
 Mientras `tokenCliente` esté vacío, los botones "Comprar" siguen abriendo un correo (la página no se rompe).
 
-## Paso 8b — Pasar AVICH Sistemas a Cloudflare
-1. Copia las variables de AVICH Sistemas de Vercel a Cloudflare (tabla del paso 7). `SIGNING_PRIVATE_KEY` funciona tal cual (con `\n` o con saltos de línea reales; PKCS#1 o PKCS#8).
+## Paso 8b — Pasar AVICH Sistemas a Cloudflare + Paddle
+AVICH Sistemas ya **no usa Lemon Squeezy**: sus licencias son las mismas claves `AVICH-XXXX-XXXX-XXXX-XXXX` de AVICH 3D (base de datos Upstash), creadas por el webhook de Paddle cuando alguien compra.
+1. Copia las variables de Sistemas (tabla del paso 7). `SIGNING_PRIVATE_KEY` debe ser **la misma clave privada de siempre**: tu extensión trae la clave pública y, si cambia, no reconocería el catálogo firmado. Funciona con `\n` o con saltos de línea reales, PKCS#1 o PKCS#8.
 2. **CORS del bucket R2:** el panel `/admin` sube archivos directo a R2 desde el navegador. En R2 → tu bucket → Settings → **CORS policy**, agrega tu nueva dirección (`https://tu-proyecto.pages.dev` y tu dominio) con métodos `PUT`, `GET`, `HEAD` y cabeceras `*`.
-3. Entra a `/admin`, pulsa **Diagnóstico** y confirma que todo salga en verde.
-4. **Tu extensión AVICH Sistemas** (Ruby) tiene escrita la dirección `https://grupoavich.vercel.app/api/...`. Hay que cambiarla por tu nuevo dominio (`/api/catalogo`, `/api/descargar`, `/api/actualizacion`) y publicar una versión nueva. Mientras tanto **no apagues Vercel**: los clientes con la versión vieja seguirán usándolo.
-5. El panel admin ahora calcula la huella SHA-256 **en tu navegador** (el servidor gratis de Cloudflare tiene solo 10 ms de CPU por petición y no podría con archivos de decenas de MB).
+3. Entra a `/admin`, pulsa **Diagnóstico** y confirma que todo salga en verde (incluida la base de datos).
+4. **Cómo funciona la licencia en la extensión de Sistemas** (hay que programarlo en ella):
+   - Al activar: `POST /api/licencia` con `{ accion:'activar', clave, equipo_id, equipo_nombre, producto:'sistemas' }`. Cada equipo cuenta dentro del límite del plan (Personal 1 · Empresa mensual 6 · Empresa vitalicio 10).
+   - Luego, en `/api/catalogo`, `/api/descargar` y `/api/actualizacion`, manda `licencia: <clave>` e `instancia: <equipo_id>` (el mismo id con el que activó). Si el equipo no está activado, solo tiene la prueba gratuita.
+   - **Vitalicio:** la licencia no vence, y el acceso a la biblioteca sigue siempre; pero las **actualizaciones de la extensión** se descargan solo durante 12 meses desde la compra (respuesta `actualizaciones_vencidas`).
+   - Las licencias se pueden quitar de un equipo desde **Mi cuenta** o con `tools/licencias.mjs`.
+5. **La dirección** `https://grupoavich.vercel.app/api/...` está escrita en tu extensión. Hay que cambiarla por tu nuevo dominio y publicar una versión nueva. Mientras tanto **no apagues Vercel**.
+6. El panel admin calcula la huella SHA-256 **en tu navegador** (el plan gratis de Cloudflare solo tiene 10 ms de CPU por petición).
 
 ## Paso 9 — Probar de punta a punta (sandbox)
 1. En `/3d/#precios` pulsa **Comprar** → tarjeta de prueba `4242 4242 4242 4242`, vencimiento futuro, CVC `100`.
@@ -132,9 +140,10 @@ node tools/licencias.mjs revocar AVICH-XXXX-XXXX-XXXX-XXXX
 ```
 
 ## Pendientes y avisos honestos
-- Probé todo contra **simulaciones** (Redis, Paddle, Lemon Squeezy, correo y R2 falsos): 35 pruebas de AVICH 3D, 29 de AVICH Sistemas y 18 del cliente Ruby. Las firmas de R2 (URLs y cabeceras) son **idénticas** a las del SDK oficial de AWS, y la firma RSA del catálogo es idéntica a la que daba Node. Cloudflare compila todas las funciones. **No** se ha probado contra los servicios reales: por eso el paso 9 (sandbox) y el diagnóstico de `/admin` son obligatorios.
+- Probé todo contra **simulaciones** (Redis, Paddle, Lemon Squeezy, correo y R2 falsos): 47 pruebas de AVICH 3D + Sistemas (compras, vitalicio, reembolsos), 37 de la API de Sistemas y 18 del cliente Ruby. Las firmas de R2 (URLs y cabeceras) son **idénticas** a las del SDK oficial de AWS, y la firma RSA del catálogo es idéntica a la que daba Node. Cloudflare compila todas las funciones. **No** se ha probado contra los servicios reales: por eso el paso 9 (sandbox) y el diagnóstico de `/admin` son obligatorios.
 - **Plan gratis de Cloudflare = 10 ms de CPU por petición.** Todo cabe holgado salvo un caso: `/api/descargar` con **muchas miniaturas en un solo pedido** (hasta 300 URLs firmadas ≈ 25–30 ms de CPU medidos en Node). Si la biblioteca tiene más de ~100 elementos y ves errores 1102 ("exceeded CPU"), sube al plan **Workers Paid (US$5/mes)**, que lo resuelve sin tocar código.
-- **AVICH Sistemas sigue con Lemon Squeezy** para cobrar (la validación de licencias se mantiene igual). Pasarlo a Paddle sería otro cambio aparte.
+- **Clientes antiguos de Lemon Squeezy:** si ya vendiste claves por Lemon Squeezy, esas claves **ya no se validan**. Crea sus licencias nuevas con `node tools/licencias.mjs crear correo "Personal" 1 36500 --enviar --sistemas`.
+- Reembolsos: el evento `adjustment.updated` de Paddle (reembolso total aprobado) revoca la licencia. Es el único código que escribí sin poder confirmar los nombres exactos de los campos con una cuenta real de Paddle; pruébalo en sandbox haciendo un reembolso.
 - Las etiquetas `canonical`/`og:url` de las páginas aún dicen `grupoavich.vercel.app`; cuando tengas tu dominio definitivo, cámbialas.
 - **Yape** no es posible con Paddle.
 - Si más adelante quieres precios regionales o impuestos distintos, se configuran en Paddle, no en el código.

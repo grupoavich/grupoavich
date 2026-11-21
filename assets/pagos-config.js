@@ -7,6 +7,10 @@ window.AVICH_PAGOS = {
     personal_mensual: '',
     personal_anual: '',
     empresarial_mensual: '',
-    empresarial_anual: ''
+    empresarial_anual: '',
+    sis_personal_mensual: '',     // AVICH Sistemas
+    sis_personal_vitalicio: '',
+    sis_empresa_mensual: '',
+    sis_empresa_vitalicio: ''
   }
 };

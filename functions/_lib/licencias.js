@@ -3,13 +3,21 @@ import { aleatorio } from './cripto.js';
 
 export const DIA = 86400000;
 
+export const FUTURO_LEJANO = Date.UTC(2099, 11, 31); // "vitalicio": la licencia no vence
+
 // Planes: clave interna -> límite de equipos. Los price_id de Paddle vienen de variables de entorno.
+// producto: '3d' (AVICH 3D) o 'sistemas' (AVICH Sistemas). periodo 'vitalicio' = pago único.
 export const PLANES = {
-  personal_mensual:    { plan: 'Personal',    periodo: 'mensual', maxEquipos: 1, env: 'PADDLE_PRICE_PERSONAL_MENSUAL' },
-  personal_anual:      { plan: 'Personal',    periodo: 'anual',   maxEquipos: 1, env: 'PADDLE_PRICE_PERSONAL_ANUAL' },
-  empresarial_mensual: { plan: 'Empresarial', periodo: 'mensual', maxEquipos: 5, env: 'PADDLE_PRICE_EMPRESARIAL_MENSUAL' },
-  empresarial_anual:   { plan: 'Empresarial', periodo: 'anual',   maxEquipos: 6, env: 'PADDLE_PRICE_EMPRESARIAL_ANUAL' },
+  personal_mensual:    { producto: '3d', plan: 'Personal',    periodo: 'mensual', maxEquipos: 1, env: 'PADDLE_PRICE_PERSONAL_MENSUAL' },
+  personal_anual:      { producto: '3d', plan: 'Personal',    periodo: 'anual',   maxEquipos: 1, env: 'PADDLE_PRICE_PERSONAL_ANUAL' },
+  empresarial_mensual: { producto: '3d', plan: 'Empresarial', periodo: 'mensual', maxEquipos: 5, env: 'PADDLE_PRICE_EMPRESARIAL_MENSUAL' },
+  empresarial_anual:   { producto: '3d', plan: 'Empresarial', periodo: 'anual',   maxEquipos: 6, env: 'PADDLE_PRICE_EMPRESARIAL_ANUAL' },
+  sis_personal_mensual:   { producto: 'sistemas', plan: 'Personal', periodo: 'mensual',   maxEquipos: 1,  env: 'PADDLE_PRICE_SIS_PERSONAL_MENSUAL' },
+  sis_personal_vitalicio: { producto: 'sistemas', plan: 'Personal', periodo: 'vitalicio', maxEquipos: 1,  env: 'PADDLE_PRICE_SIS_PERSONAL_VITALICIO' },
+  sis_empresa_mensual:    { producto: 'sistemas', plan: 'Empresa',  periodo: 'mensual',   maxEquipos: 6,  env: 'PADDLE_PRICE_SIS_EMPRESA_MENSUAL' },
+  sis_empresa_vitalicio:  { producto: 'sistemas', plan: 'Empresa',  periodo: 'vitalicio', maxEquipos: 10, env: 'PADDLE_PRICE_SIS_EMPRESA_VITALICIO' },
 };
+export const productoDe = (lic) => (lic && lic.producto) || '3d';
 
 export function planPorPrecio(env, priceId) {
   for (const k of Object.keys(PLANES)) {
@@ -71,9 +79,10 @@ export function evaluar(env, lic, ahora) {
 export function publica(env, lic) {
   const ev = evaluar(env, lic);
   return {
-    clave: lic.clave, plan: lic.plan, periodo: lic.periodo, maxEquipos: lic.maxEquipos,
+    clave: lic.clave, producto: productoDe(lic), plan: lic.plan, periodo: lic.periodo, maxEquipos: lic.maxEquipos,
     estado: lic.estado, vigente: ev.valida, motivo: ev.motivo, expira: lic.expira,
     equipos: (lic.equipos || []).map((e) => ({ id: e.id, nombre: e.nombre, desde: e.desde })),
+    actualizacionesHasta: lic.actualizaciones_hasta || null,
     gestionable: !!lic.suscripcion,
   };
 }

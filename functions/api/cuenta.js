@@ -64,7 +64,9 @@ export async function onRequest({ request, env }) {
     }
 
     if (accion === 'descargar') {
-      if (!lics.some((l) => L.evaluar(env, l).valida)) return json({ ok: false, motivo: 'sin_licencia_vigente' }, 403);
+      const prod = url.searchParams.get('producto') === 'sistemas' ? 'sistemas' : '3d';
+      if (!lics.some((l) => L.productoDe(l) === prod && L.evaluar(env, l).valida)) return json({ ok: false, motivo: 'sin_licencia_vigente' }, 403);
+      if (prod === 'sistemas') return new Response(null, { status: 302, headers: { Location: '/api/instalador', 'Cache-Control': 'no-store' } });
       const v = env.AVICH_VERSION_ACTUAL || 'ultima';
       const u = await enlaceDescarga(env, env.AVICH_ARCHIVO_R2 || 'avich_3d.rbz', `avich_3d_${v}.rbz`);
       if (!u) return json({ ok: false, motivo: 'descarga_no_configurada' }, 503);
