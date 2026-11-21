@@ -1,4 +1,4 @@
-// POST /api/admin?accion=login|logout|lista|diagnostico|subida|publicar|eliminar|avisos|subida_release|publicar_release|quitar_release|licencia_crear|licencia_ver|licencia_revocar|licencia_quitar_equipo
+// POST /api/admin?accion=login|logout|lista|diagnostico|subida|publicar|eliminar|avisos|subida_release|publicar_release|quitar_release|subida_3d|publicar_3d|quitar_3d|licencia_crear|licencia_ver|licencia_revocar|licencia_quitar_equipo
 // (todo menos login/logout pide sesión)
 import { leerJSON, json, ip } from '../_lib/sistemas/h.js';
 import { permitir } from '../_lib/sistemas/limite.js';
@@ -6,6 +6,7 @@ import * as ses from '../_lib/sistemas/sesion.js';
 import { getStorage } from '../_lib/sistemas/almacen.js';
 import { leer, guardar, idValido, nombreArchivoSeguro, TIPOS, ARCHIVOS } from '../_lib/sistemas/catalogo.js';
 import * as rel from '../_lib/sistemas/release.js';
+import * as r3 from '../_lib/release3d.js';
 import { firmar, formaClave } from '../_lib/sistemas/firma.js';
 import { sha256hex } from '../_lib/cripto.js';
 import { redis } from '../_lib/redis.js';
@@ -56,7 +57,8 @@ export async function onRequest({ request, env }) {
     if (accion === 'lista') {
       const c = await leer(env);
       const r = await rel.leer(env);
-      return json({ version: c.version, items: c.items, avisos: c.avisos, release: r ? { version: r.version, notas: r.notas, obligatoria: !!r.obligatoria, publicado: r.publicado, bytes: r.archivo.bytes, incluye_dll: !!r.incluye_dll } : null });
+      const t = await r3.leer(env);
+      return json({ release3d: t && t.archivo ? { version: t.version, notas: t.notas, publicado: t.publicado, bytes: t.archivo.bytes } : null, version: c.version, items: c.items, avisos: c.avisos, release: r ? { version: r.version, notas: r.notas, obligatoria: !!r.obligatoria, publicado: r.publicado, bytes: r.archivo.bytes, incluye_dll: !!r.incluye_dll } : null });
     }
     if (request.method !== 'POST' || !String(request.headers.get('content-type') || '').includes('application/json')) return json({ error: 'formato' }, 400);
     const b = await leerJSON(request);
@@ -210,6 +212,34 @@ export async function onRequest({ request, env }) {
       const previa = await rel.leer(env);
       if (previa && previa.archivo) { try { await st.del(previa.archivo.key); } catch (e) {} }
       await rel.quitar(env);
+      return json({ ok: true });
+    }
+
+    // ── AVICH 3D (.rbz): se sube a R2 y los clientes con licencia 3D lo descargan / reciben el aviso ──
+    if (accion === 'subida_3d') {
+      if (!r3.VERSION_RE.test(String(b.version)) || !r3.NOMBRE_RE.test(String(b.nombre))) return json({ error: 'datos' }, 400);
+      const key = `avich3d/${b.version}/${b.nombre}`;
+      return json({ key, url: await st.presignPut(key, 'application/octet-stream', 900) });
+    }
+    if (accion === 'publicar_3d') {
+      const version = String(b.version);
+      if (!r3.VERSION_RE.test(version)) return json({ error: 'version' }, 400);
+      if (!b.key || !String(b.key).startsWith(`avich3d/${version}/`) || String(b.key).includes('..') || !r3.NOMBRE_RE.test(String(b.key).split('/').pop())) return json({ error: 'ruta' }, 400);
+      const h = await st.head(b.key);
+      if (!h) return json({ error: 'archivo_no_subido' }, 400);
+      let info;
+      try { info = await r3.inspeccionar(st, b.key, version, h.bytes); } catch (e) { return json({ error: String(e.message).split(':')[0], detalle: e.message }, 400); }
+      const sha = await huella(st, b.key, h.bytes, b.sha256);
+      if (!sha) return json({ error: 'falta_sha256' }, 400);
+      const previa = await r3.leer(env);
+      await r3.guardar(env, { version, notas: limpia(b.notas, 600), publicado: new Date().toISOString(), archivo: { key: b.key, nombre: b.key.split('/').pop(), bytes: h.bytes, sha256: sha } });
+      if (previa && previa.archivo && previa.archivo.key !== b.key) { try { await st.del(previa.archivo.key); } catch (e) {} }
+      return json({ ok: true, version, archivos: info.archivos });
+    }
+    if (accion === 'quitar_3d') {
+      const previa = await r3.leer(env);
+      if (previa && previa.archivo) { try { await st.del(previa.archivo.key); } catch (e) {} }
+      await r3.quitar(env);
       return json({ ok: true });
     }
 
