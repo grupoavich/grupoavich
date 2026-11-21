@@ -1,4 +1,4 @@
-// POST /api/admin?accion=login|logout|lista|diagnostico|subida|publicar|eliminar|avisos|subida_release|publicar_release|quitar_release
+// POST /api/admin?accion=login|logout|lista|diagnostico|subida|publicar|eliminar|avisos|subida_release|publicar_release|quitar_release|licencia_crear|licencia_ver|licencia_revocar|licencia_quitar_equipo
 // (todo menos login/logout pide sesión)
 import { leerJSON, json, ip } from '../_lib/sistemas/h.js';
 import { permitir } from '../_lib/sistemas/limite.js';
@@ -9,6 +9,7 @@ import * as rel from '../_lib/sistemas/release.js';
 import { firmar, formaClave } from '../_lib/sistemas/firma.js';
 import { sha256hex } from '../_lib/cripto.js';
 import { redis } from '../_lib/redis.js';
+import * as L from '../_lib/licencias.js';
 
 const MAX_PRINCIPAL = 40 * 1024 * 1024, MAX_MINIATURA = 1024 * 1024;
 const MAX_HASH_SERVIDOR = 4 * 1024 * 1024;     // por encima de esto el navegador debe mandar la huella (ahorra CPU)
@@ -59,6 +60,27 @@ export async function onRequest({ request, env }) {
     }
     if (request.method !== 'POST' || !String(request.headers.get('content-type') || '').includes('application/json')) return json({ error: 'formato' }, 400);
     const b = await leerJSON(request);
+
+    // ---- Licencias (crear de prueba / consultar / revocar / quitar equipo)
+    if (accion && accion.indexOf('licencia_') === 0) {
+      if (request.method !== 'POST') return json({ error: 'metodo' }, 405);
+      const vista = (l) => ({ clave: l.clave, producto: L.productoDe(l), email: l.email, plan: l.plan, periodo: l.periodo, estado: l.estado, maxEquipos: l.maxEquipos, expira: l.expira, vigente: L.evaluar(env, l).valida, motivo: L.evaluar(env, l).motivo, equipos: (l.equipos || []).map((e) => ({ id: e.id, nombre: e.nombre })) });
+      if (accion === 'licencia_crear') {
+        const email = limpia(b.email, 120).toLowerCase(), plan = limpia(b.plan, 40) || 'Prueba';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'correo_invalido' }, 400);
+        const dias = num(b.dias, 1, 3650), maxEq = num(b.maxEquipos, 1, 50);
+        if (dias === null || maxEq === null) return json({ error: 'numeros_invalidos' }, 400);
+        const lic = { clave: L.nuevaClave(), producto: b.producto === 'sistemas' ? 'sistemas' : '3d', email, plan, periodo: 'manual', maxEquipos: maxEq, estado: 'activa', suscripcion: null, cliente: null, expira: Date.now() + dias * L.DIA, equipos: [], creada: Date.now() };
+        await L.guardar(env, lic);
+        return json({ ok: true, licencia: vista(lic) });
+      }
+      const lic = await L.obtener(env, b.clave);
+      if (!lic) return json({ error: 'no_existe' }, 404);
+      if (accion === 'licencia_ver') return json({ ok: true, licencia: vista(lic) });
+      if (accion === 'licencia_revocar') { lic.estado = 'revocada'; await L.guardar(env, lic); return json({ ok: true, licencia: vista(lic) }); }
+      if (accion === 'licencia_quitar_equipo') { lic.equipos = (lic.equipos || []).filter((e) => e.id !== b.equipo); await L.guardar(env, lic); return json({ ok: true, licencia: vista(lic) }); }
+      return json({ error: 'accion' }, 400);
+    }
 
     // Diagnóstico: dice qué falta o qué está mal configurado (sin mostrar ningún secreto)
     if (accion === 'diagnostico') {
