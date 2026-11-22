@@ -19,33 +19,44 @@ export function getStorage(env, fetchFn) {
     const url = base + ruta(key).split('/').map((s) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase())).join('/');
     return f(url, { method: metodo, headers: cab, body: cuerpo });
   }
+
+  // R2 a veces responde 500/503 «InternalError… try again» de forma pasajera: se reintenta (la firma se rehace cada vez).
+  async function pedirConReintento(metodo, key, op) {
+    let r;
+    for (let i = 0; i < 4; i++) {
+      try { r = await pedir(metodo, key, op); } catch (e) { if (i === 3) throw e; r = null; }
+      if (r && r.status < 500) return r;
+      if (i < 3) await new Promise((ok) => setTimeout(ok, 250 * (i + 1) * (i + 1)));
+    }
+    return r;
+  }
   const falla = async (r, que) => { throw new Error(`R2 ${que}: HTTP ${r.status} ${(await r.text().catch(() => '')).replace(/<[^>]+>/g, ' ').slice(0, 160)}`); };
 
   return {
     async get(key) {
-      const r = await pedir('GET', key);
+      const r = await pedirConReintento('GET', key);
       if (r.status === 404) return null;
       if (!r.ok) await falla(r, 'get');
       return new Uint8Array(await r.arrayBuffer());
     },
     async getRango(key, ini, fin) {      // bytes ini..fin (inclusive); devuelve menos si el archivo es más corto
-      const r = await pedir('GET', key, { rango: `bytes=${ini}-${fin}` });
+      const r = await pedirConReintento('GET', key, { rango: `bytes=${ini}-${fin}` });
       if (r.status === 404 || r.status === 416) return null;
       if (!r.ok) await falla(r, 'getRango');
       return new Uint8Array(await r.arrayBuffer());
     },
     async put(key, bytes, tipo) {
-      const r = await pedir('PUT', key, { cuerpo: bytes, tipo: tipo || 'application/octet-stream' });
+      const r = await pedirConReintento('PUT', key, { cuerpo: bytes, tipo: tipo || 'application/octet-stream' });
       if (!r.ok) await falla(r, 'put');
     },
     async head(key) {
-      const r = await pedir('HEAD', key);
+      const r = await pedirConReintento('HEAD', key);
       if (r.status === 404) return null;
       if (!r.ok) await falla(r, 'head');
       return { bytes: Number(r.headers.get('content-length')) };
     },
     async del(key) {
-      const r = await pedir('DELETE', key);
+      const r = await pedirConReintento('DELETE', key);
       if (!r.ok && r.status !== 404) await falla(r, 'del');
     },
     presignGet: (key, secs = 300) => presignar(Object.assign({ metodo: 'GET', ruta: ruta(key), expira: secs }, cred)),
