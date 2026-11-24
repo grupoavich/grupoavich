@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>AVICH · Administración</title>
+<style>
+  :root{--bg:#0b0c0d;--panel:#131517;--panel2:#181b1e;--line:#262a2e;--line2:#333a40;--txt:#eceff1;--dim:#8f9aa3;--teal:#00BFA5;--teal2:#00d9bb;--red:#ef5350;--amb:#ffb02e;--blue:#4aa3ff;--rad:12px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 system-ui,"Segoe UI",Arial,sans-serif}
+  h1{font-size:16px;margin:0;font-weight:700} h2{font-size:15px;margin:0 0 4px;font-weight:700} h3{font-size:13px;margin:0 0 10px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .sub{color:var(--dim);font-size:12.5px;margin:0 0 14px}
+  header.top{position:sticky;top:0;z-index:20;background:rgba(11,12,13,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .top-in{max-width:1240px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--teal),#00796b);display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff}
+  .brand small{display:block;color:var(--dim);font-size:11.5px;font-weight:400;margin-top:1px}
+  nav.tabs{display:flex;gap:4px;margin-left:10px;flex:1;flex-wrap:wrap}
+  nav.tabs button{background:transparent;color:var(--dim);border:0;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13.5px}
+  nav.tabs button:hover{color:var(--txt);background:var(--panel2)}
+  nav.tabs button.on{color:#fff;background:rgba(0,191,165,.16);box-shadow:inset 0 -2px 0 var(--teal)}
+  .acciones{display:flex;gap:8px}
+  main{max-width:1240px;margin:0 auto;padding:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad);padding:18px;margin-bottom:18px}
+  input,select,textarea{background:#0d0f10;color:var(--txt);border:1px solid var(--line2);border-radius:8px;padding:9px 11px;font:inherit;width:100%;outline:none;transition:border-color .15s,box-shadow .15s}
+  input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,191,165,.15)}
+  input[type=file]{padding:7px}
+  input[type=checkbox]{width:auto}
+  label{display:block;font-size:11.5px;color:var(--dim);margin:12px 0 5px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+  .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  button{background:var(--teal);color:#06211d;border:0;border-radius:8px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer;transition:filter .15s,background .15s}
+  button:hover{filter:brightness(1.1)}
+  button.sec{background:transparent;color:var(--teal2);border:1px solid rgba(0,191,165,.45)} button.sec:hover{background:rgba(0,191,165,.1)}
+  button.del{background:transparent;color:var(--red);border:1px solid rgba(239,83,80,.45);padding:6px 11px} button.del:hover{background:rgba(239,83,80,.1)}
+  button.mini{padding:6px 11px;font-size:12.5px}
+  button:disabled{opacity:.5;cursor:default}
+  .hint{font-size:12px;color:var(--dim);margin-top:6px}
+  .tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700;white-space:nowrap}
+  .t-gr{background:rgba(0,191,165,.15);color:var(--teal2)} .t-li{background:rgba(255,176,46,.15);color:var(--amb)} .t-ti{background:rgba(74,163,255,.14);color:var(--blue)} .t-ac{background:rgba(180,140,255,.14);color:#c4a6ff}
+  #msg{position:fixed;right:18px;bottom:18px;max-width:400px;padding:12px 16px;border-radius:10px;background:#1b1e21;border:1px solid var(--line2);display:none;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  #msg.err{border-color:var(--red);color:#ffb4ab} #msg.ok{border-color:var(--teal);color:#9ff5e6}
+  .centro{max-width:360px;margin:14vh auto}
+  .oculto{display:none!important}
+
+  /* Resumen */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad);padding:14px 16px;cursor:pointer;transition:border-color .15s}
+  .stat:hover{border-color:var(--line2)} .stat.on{border-color:var(--teal)}
+  .stat b{display:block;font-size:24px;line-height:1.1} .stat span{color:var(--dim);font-size:12px}
+
+  /* Filtros */
+  .filtros{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad);padding:14px 16px;margin-bottom:14px}
+  .f-top{display:grid;grid-template-columns:minmax(220px,2fr) repeat(4,minmax(130px,1fr));gap:10px;align-items:end}
+  .f-top label{margin:0 0 4px}
+  .seg{display:flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:#0d0f10}
+  .seg button{flex:1;background:transparent;color:var(--dim);border-radius:0;padding:9px 8px;font-weight:600;font-size:12.5px}
+  .seg button.on{background:rgba(0,191,165,.18);color:var(--teal2)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;align-items:center}
+  .chip{background:#0d0f10;color:var(--dim);border:1px solid var(--line2);border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:600}
+  .chip:hover{color:var(--txt);filter:none;border-color:var(--teal)}
+  .chip.on{background:rgba(0,191,165,.18);color:var(--teal2);border-color:var(--teal)}
+  .chip i{font-style:normal;opacity:.6;margin-left:4px;font-weight:500}
+  .barra{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+  .barra .izq{color:var(--dim);font-size:13px} .barra .izq b{color:var(--txt)}
+  .vista{display:flex;gap:6px}
+  .vista button{padding:6px 11px;font-size:12.5px}
+
+  /* Tabla */
+  .tabla{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad);overflow:auto}
+  table{width:100%;border-collapse:collapse;min-width:760px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+  tbody tr:hover{background:var(--panel2)} tbody tr:last-child td{border-bottom:0}
+  th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;background:var(--panel2);position:sticky;top:0}
+  img.mi{width:46px;height:46px;border-radius:8px;object-fit:cover;background:#22262a;display:block}
+  .nom b{font-size:13.5px} .nom .hint{margin:2px 0 0}
+
+  /* Tarjetas */
+  .rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+  .tarj{background:var(--panel);border:1px solid var(--line);border-radius:var(--rad);overflow:hidden;display:flex;flex-direction:column}
+  .tarj:hover{border-color:var(--line2)}
+  .tarj img.mi{width:100%;height:150px;border-radius:0}
+  .tarj .cuerpo{padding:12px;display:flex;flex-direction:column;gap:7px;flex:1}
+  .tarj .meta{display:flex;gap:6px;flex-wrap:wrap}
+  .tarj .btns{display:flex;gap:8px;margin-top:auto;padding-top:6px}
+  .vacio{padding:36px;text-align:center;color:var(--dim)}
+
+  /* Formulario */
+  .form-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .bloque{border:1px solid var(--line);border-radius:10px;padding:4px 14px 14px;margin-top:14px;background:var(--panel2)}
+  .bloque h3{margin:12px 0 0}
+  #previa{width:64px;height:64px;border-radius:8px;background:#222;object-fit:cover;display:none;margin-top:8px}
+
+  .dos{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:18px;align-items:start}
+  .dos .card{margin-bottom:0}
+  .rel-estado{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:6px;font-size:13px}
+  pre#licOut{white-space:pre-wrap;margin:12px 0 0;color:var(--dim);background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px}
+  pre#licOut:empty{display:none}
+
+  @media (max-width:900px){.f-top{grid-template-columns:1fr 1fr}.f-top>div:first-child{grid-column:1/-1}.dos{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="login" class="centro card" style="display:none">
+  <h2>Administración AVICH</h2>
+  <label>Contraseña</label>
+  <input type="password" id="pw" autocomplete="current-password">
+  <div style="margin-top:14px"><button id="btnLogin" style="width:100%">Entrar</button></div>
+</div>
+
+<div id="app" style="display:none">
+<header class="top"><div class="top-in">
+  <div class="brand"><div class="logo">A</div><h1>AVICH<small>Administración · catálogo <span id="verCat"></span></small></h1></div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="contenido" class="on">Biblioteca</button>
+    <button data-tab="licencias">Licencias</button>
+    <button data-tab="versiones">Actualizaciones</button>
+    <button data-tab="avisos">Avisos</button>
+  </nav>
+  <div class="acciones"><button class="sec" id="btnDiag">Diagnóstico</button><button class="sec" id="btnSalir">Salir</button></div>
+</div></header>
+
+<main>
+  <div class="card oculto" id="diagCard">
+    <h2>Diagnóstico</h2>
+    <div id="diagTxt" style="white-space:pre-wrap;font-size:13px;line-height:1.7;margin-top:8px"></div>
+  </div>
+
+  <!-- ══════════ BIBLIOTECA ══════════ -->
+  <section id="tab-contenido">
+    <div class="stats" id="stats"></div>
+
+    <div class="filtros">
+      <div class="f-top">
+        <div><label>Buscar</label><input id="q" placeholder="Nombre, código, marca, categoría…" autocomplete="off"></div>
+        <div><label>Acceso</label><div class="seg" id="segAcceso"><button data-v="" class="on">Todos</button><button data-v="gratis">Gratis</button><button data-v="licencia">Licencia</button></div></div>
+        <div><label>Tipo</label><select id="fTipo"><option value="">Todos</option><option value="placa">Placas</option><option value="accesorio">Accesorios</option></select></div>
+        <div><label>Marca</label><select id="fMarca"></select></div>
+        <div><label>Espesor</label><select id="fEsp"></select></div>
+      </div>
+      <div class="chips" id="chipsCat"></div>
+    </div>
+
+    <div class="barra">
+      <div class="izq" id="resumenFiltro"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <select id="fOrden" style="width:auto"><option value="nombre">Ordenar: nombre</option><option value="categoria">Ordenar: categoría</option><option value="marca">Ordenar: marca</option><option value="espesor">Ordenar: espesor</option><option value="reciente">Ordenar: más recientes</option></select>
+        <div class="vista"><button class="sec mini" id="vTabla">Lista</button><button class="sec mini" id="vTarj">Tarjetas</button></div>
+        <button class="sec mini" id="btnLimpiarFiltros">Limpiar filtros</button>
+        <button id="btnNuevo">+ Agregar contenido</button>
+      </div>
+    </div>
+
+    <div class="card oculto" id="formWrap">
+      <div class="form-cab">
+        <div><h2 id="tituloForm">Agregar contenido</h2><p class="sub" style="margin:0">Texturas (.skm) o accesorios (imagen) para la biblioteca de la extensión.</p></div>
+        <button class="sec mini" id="btnCerrarForm">Cerrar</button>
+      </div>
+      <div class="bloque">
+        <h3>Datos</h3>
+        <div class="row">
+          <div><label>Nombre visible</label><input id="f-nombre" placeholder="Roble Cava"></div>
+          <div><label>Identificador (sin espacios)</label><input id="f-id" placeholder="roble-cava"></div>
+          <div><label>Tipo</label><select id="f-tipo"><option value="placa">Placa (textura .skm)</option><option value="accesorio">Accesorio (imagen)</option></select></div>
+          <div><label>Acceso</label><select id="f-acceso"><option value="licencia">Solo con licencia</option><option value="gratis">Gratis (incluye la prueba)</option></select></div>
+        </div>
+        <div class="row">
+          <div><label>Marca</label><input id="f-marca" list="listaMarcas"></div>
+          <div><label>Categoría</label><input id="f-cat" list="listaCats" placeholder="Maderas, Lisos, Piedra…"></div>
+          <div><label>Código</label><input id="f-cod"></div>
+        </div>
+        <datalist id="listaMarcas"></datalist><datalist id="listaCats"></datalist>
+      </div>
+      <div class="bloque" id="bloqueMedidas">
+        <h3>Medidas</h3>
+        <div class="row" id="datosPlaca">
+          <div><label>Largo (mm)</label><input id="f-largo" type="number" value="2440"></div>
+          <div><label>Ancho (mm)</label><input id="f-ancho" type="number" value="1830"></div>
+          <div><label>Espesor (mm)</label><input id="f-esp" type="number" value="18"></div>
+          <div><label>Tiene veta</label><select id="f-veta"><option value="1">Sí</option><option value="0">No</option></select></div>
+        </div>
+        <div class="row" id="datosAcc" style="display:none"><div><label>Unidad</label><input id="f-unidad" value="unidades"></div></div>
+      </div>
+      <div class="bloque">
+        <h3>Archivos</h3>
+        <div class="row">
+          <div><label id="lblPrincipal">Archivo .skm</label><input type="file" id="f-principal" accept=".skm"></div>
+          <div id="boxMini"><label>Miniatura (opcional)</label><input type="file" id="f-mini" accept=".png,.jpg,.jpeg"><div class="hint">Si no eliges una, se genera sola desde la textura.</div><img id="previa" alt=""></div>
+        </div>
+        <div class="hint" id="hintEditar" style="display:none">Estás editando un elemento existente. Si no eliges archivos nuevos solo se cambian los datos.</div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px"><button id="btnPublicar">Publicar</button><button class="sec" id="btnLimpiar">Limpiar</button></div>
+    </div>
+
+    <div id="listado"></div>
+  </section>
+
+  <!-- ══════════ LICENCIAS ══════════ -->
+  <section id="tab-licencias" class="oculto">
+    <div class="card" id="licCard">
+      <h2>Nueva licencia</h2>
+      <p class="sub">Para ventas manuales (Yape, transferencia, PayPal) y pruebas: creas la licencia, copias el mensaje y se lo mandas al cliente por WhatsApp o correo.</p>
+      <div class="row" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr">
+        <div><label>Correo del cliente</label><input id="licEmail" placeholder="correo@cliente.com"></div>
+        <div><label>Producto</label><select id="licProd"><option value="3d">AVICH 3D</option><option value="sistemas">AVICH Sistemas</option></select></div>
+        <div><label>Plan</label><input id="licPlan" value="Personal" list="listaPlanes" placeholder="Plan"><datalist id="listaPlanes"><option value="Personal"><option value="Empresarial"><option value="Empresa"><option value="Prueba"></datalist></div>
+        <div><label>Equipos</label><input id="licEq" type="number" min="1" value="1" title="Equipos permitidos"></div>
+        <div><label>Duración</label><select id="licDur"><option value="30">30 días</option><option value="90">90 días</option><option value="365">1 año</option><option value="vitalicio">Vitalicio (+12 meses de actualizaciones)</option><option value="otro">Otros días…</option></select></div>
+      </div>
+      <div class="row" id="licDiasBox" style="margin-top:8px;display:none"><div><label>Días de vigencia</label><input id="licDias" type="number" min="1" max="3650" value="30"></div></div>
+      <div style="margin-top:12px"><button id="btnLicCrear">Crear licencia</button></div>
+      <div id="licListo" class="bloque oculto">
+        <h3>Mensaje para el cliente</h3>
+        <textarea id="licMsg" rows="9" style="width:100%"></textarea>
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap"><button id="btnLicCopiar">Copiar mensaje</button><a id="btnLicWa" class="sec" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block;border:1px solid rgba(0,191,165,.45);color:var(--teal2);border-radius:8px;padding:9px 16px;font-weight:700">Abrir en WhatsApp</a></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-cab"><div><h2>Licencias <span id="licTotal" style="color:var(--dim);font-weight:400"></span></h2><p class="sub" style="margin:0">Todas las licencias, también las que crea Paddle. Busca por correo o clave.</p></div><button class="sec mini" id="btnLicRecargar">Actualizar</button></div>
+      <div class="row" style="grid-template-columns:3fr 1fr 1fr;margin:8px 0 12px">
+        <div><label>Buscar</label><input id="licQ" placeholder="Correo o clave" autocomplete="off"></div>
+        <div><label>Producto</label><select id="licFP"><option value="">Todos</option><option value="3d">AVICH 3D</option><option value="sistemas">AVICH Sistemas</option></select></div>
+        <div><label>Estado</label><select id="licFE"><option value="">Todos</option><option value="vigente">Vigentes</option><option value="vence">Vencen en 7 días</option><option value="vencida">Vencidas</option><option value="revocada">Revocadas</option></select></div>
+      </div>
+      <div class="tabla"><table id="licTabla" style="min-width:880px"><thead><tr><th>Cliente</th><th>Producto</th><th>Plan</th><th>Equipos</th><th>Vence</th><th>Estado</th><th></th></tr></thead><tbody id="licTbody"><tr><td colspan="7" class="hint">Cargando…</td></tr></tbody></table></div>
+    </div>
+
+    <div class="card">
+      <h2>Detalle de una licencia</h2>
+      <p class="sub">Escribe una clave o pulsa «Detalle» en la tabla. Aquí puedes quitar equipos (si el cliente cambió de computadora) o cambiar cuántos se permiten.</p>
+      <div class="row" style="grid-template-columns:3fr auto auto auto;align-items:end"><div><label>Clave</label><input id="licClave" placeholder="AVICH-XXXX-XXXX-XXXX-XXXX"></div><button class="sec" id="btnLicVer">Consultar</button><button class="sec" id="btnLicMsg">Mensaje</button><button class="del" id="btnLicRev" style="padding:9px 16px">Revocar</button></div>
+      <pre id="licOut"></pre>
+      <div id="licEquipos"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ ACTUALIZACIONES ══════════ -->
+  <section id="tab-versiones" class="oculto">
+    <div class="dos">
+      <div class="card">
+        <h2>AVICH 3D · actualización (.rbz)</h2>
+        <p class="sub">Los clientes con licencia de AVICH 3D lo descargan desde «Mi cuenta» y el plugin les avisa si tienen una versión menor.</p>
+        <div id="rel3Actual" class="rel-estado"></div>
+        <div class="row">
+          <div><label>Versión (igual a VERSION en avich_3d.rb)</label><input id="r3-ver" placeholder="1.0.7"></div>
+          <div><label>Archivo .rbz</label><input type="file" id="r3-file" accept=".rbz"></div>
+        </div>
+        <label>Novedades (máx. 600 caracteres)</label>
+        <textarea id="r3-notas" rows="3" placeholder="- Licencia obligatoria en Cut, Generador y Animación"></textarea>
+        <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button id="btnRel3">Publicar AVICH 3D</button><button class="del" id="btnQuitar3">Quitar la publicada</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>AVICH Sistemas · actualización (.rbz)</h2>
+        <p class="sub">Sube el <b>.rbz ya firmado y cifrado</b> (Portal de Firma de SketchUp). Los clientes con licencia reciben un aviso y se actualizan solos; quienes están en prueba solo ven el aviso.</p>
+        <div id="relActual" class="rel-estado"></div>
+        <div class="row">
+          <div><label>Versión (igual a PLUGIN_VERSION)</label><input id="r-ver" placeholder="2.2.1"></div>
+          <div><label>Archivo .rbz</label><input type="file" id="r-file" accept=".rbz"></div>
+        </div>
+        <label>Novedades (máx. 600 caracteres)</label>
+        <textarea id="r-notas" rows="3" placeholder="- Nuevas texturas&#10;- Arreglo en cotizaciones"></textarea>
+        <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <label style="margin:0;text-transform:none;font-size:13px;color:var(--txt);font-weight:400"><input type="checkbox" id="r-obl"> Importante (aviso obligatorio)</label>
+          <button id="btnRelease">Publicar actualización</button><button class="del" id="btnQuitarRelease">Quitar la publicada</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ AVISOS ══════════ -->
+  <section id="tab-avisos" class="oculto">
+    <div class="card">
+      <h2>Avisos en la extensión</h2>
+      <p class="sub">Mensajes cortos que aparecen arriba de la biblioteca (máximo 5). La dirección debe empezar con https://</p>
+      <div id="avisos"></div>
+      <div style="margin-top:12px;display:flex;gap:10px"><button class="sec" id="btnAddAviso">+ Aviso</button><button id="btnGuardarAvisos">Guardar avisos</button></div>
+    </div>
+  </section>
+</main></div>
+<div id="msg"></div>
+<script src="/admin/jszip.min.js"></script>
+<script>
+var CAT = { items: [], avisos: [] }, MINI_GEN = null;
+var FIL = { q:'', acceso:'', tipo:'', marca:'', esp:'', cat:'', orden:'nombre', vista:'tabla' };
+var $ = function(id){ return document.getElementById(id); };
+function aviso(t, tipo){ var m=$('msg'); m.textContent=t; m.className=tipo||'ok'; m.style.display='block'; clearTimeout(aviso._t); aviso._t=setTimeout(function(){m.style.display='none';},5000); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function api(accion, cuerpo){
+  var opt = cuerpo ? { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cuerpo) } : {};
+  return fetch('/api/admin?accion='+accion, opt).then(function(r){ return r.json().then(function(j){ return {estado:r.status,json:j}; }); });
+}
+function slug(s){ return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60); }
+function norm(s){ return String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function espDe(it){ return it.datos && it.datos.espesor ? Number(it.datos.espesor) : 0; }
+
+/* ── Pestañas ── */
+function irTab(t){
+  ['contenido','licencias','versiones','avisos'].forEach(function(n){ $('tab-'+n).classList.toggle('oculto', n!==t); });
+  document.querySelectorAll('#tabs button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab')===t); });
+  try{ sessionStorage.setItem('adm_tab', t); }catch(e){}
+}
+document.querySelectorAll('#tabs button').forEach(function(b){ b.onclick = function(){ irTab(b.getAttribute('data-tab')); }; });
+
+function mostrar(logueado){ $('login').style.display = logueado?'none':'block'; $('app').style.display = logueado?'block':'none'; }
+function cargar(){
+  return api('lista').then(function(r){
+    if(r.estado===401){ mostrar(false); return; }
+    mostrar(true);
+    if(r.estado!==200 || !Array.isArray(r.json.items)){
+      CAT = { version:0, items:[], avisos:[], release:null };
+      pintar();
+      aviso('El servidor no pudo leer el catálogo' + (r.json && r.json.detalle ? ': ' + r.json.detalle : ' (HTTP ' + r.estado + ')') + '. Pulsa «Diagnóstico» arriba a la derecha.', 'err');
+      $('btnDiag').click();
+      return;
+    }
+    CAT = r.json; pintar(); cargarLics();
+  });
+}
+
+/* ── Filtros ── */
+function unicos(fn){ var m = {}; CAT.items.forEach(function(it){ var v = fn(it); if(v) m[v] = (m[v]||0)+1; }); return m; }
+function llenarSelect(sel, valores, valorActual, etiquetaTodos, fmt){
+  var h = '<option value="">'+etiquetaTodos+'</option>' + valores.map(function(v){ return '<option value="'+esc(v)+'">'+esc(fmt?fmt(v):v)+'</option>'; }).join('');
+  sel.innerHTML = h; sel.value = valores.map(String).indexOf(String(valorActual))>=0 ? valorActual : '';
+}
+function pintarOpcionesFiltro(){
+  var marcas = Object.keys(unicos(function(i){return i.marca;})).sort(function(a,b){return a.localeCompare(b,'es');});
+  var esps = Object.keys(unicos(function(i){return espDe(i);})).map(Number).sort(function(a,b){return a-b;});
+  llenarSelect($('fMarca'), marcas, FIL.marca, 'Todas');
+  llenarSelect($('fEsp'), esps, FIL.esp, 'Todos', function(v){ return v+' mm'; });
+  if(marcas.indexOf(FIL.marca)<0) FIL.marca=''; if(esps.map(String).indexOf(String(FIL.esp))<0) FIL.esp='';
+  var cats = unicos(function(i){return i.categoria;}), nombres = Object.keys(cats).sort(function(a,b){return a.localeCompare(b,'es');});
+  if(nombres.indexOf(FIL.cat)<0) FIL.cat='';
+  $('chipsCat').innerHTML = nombres.length
+    ? '<span class="hint" style="margin:0 4px 0 0">Categoría:</span><button class="chip'+(FIL.cat===''?' on':'')+'" data-cat="">Todas<i>'+CAT.items.length+'</i></button>' + nombres.map(function(c){ return '<button class="chip'+(FIL.cat===c?' on':'')+'" data-cat="'+esc(c)+'">'+esc(c)+'<i>'+cats[c]+'</i></button>'; }).join('')
+    : '';
+  document.querySelectorAll('#chipsCat .chip').forEach(function(b){ b.onclick = function(){ FIL.cat = b.getAttribute('data-cat'); pintarListado(); pintarOpcionesFiltro(); }; });
+  $('listaMarcas').innerHTML = marcas.map(function(m){ return '<option value="'+esc(m)+'">'; }).join('');
+  $('listaCats').innerHTML = nombres.map(function(m){ return '<option value="'+esc(m)+'">'; }).join('');
+}
+function filtrar(){
+  var q = norm(FIL.q).trim();
+  var out = CAT.items.filter(function(it){
+    if(FIL.acceso && it.acceso!==FIL.acceso) return false;
+    if(FIL.tipo && it.tipo!==FIL.tipo) return false;
+    if(FIL.marca && it.marca!==FIL.marca) return false;
+    if(FIL.cat && it.categoria!==FIL.cat) return false;
+    if(FIL.esp!=='' && espDe(it)!==Number(FIL.esp)) return false;
+    if(q){ var base = norm([it.nombre,it.id,it.marca,it.categoria,it.datos&&it.datos.codigo].join(' ')); if(base.indexOf(q)<0) return false; }
+    return true;
+  });
+  var cmp = {
+    nombre: function(a,b){ return a.nombre.localeCompare(b.nombre,'es'); },
+    categoria: function(a,b){ return String(a.categoria||'').localeCompare(String(b.categoria||''),'es') || a.nombre.localeCompare(b.nombre,'es'); },
+    marca: function(a,b){ return String(a.marca||'').localeCompare(String(b.marca||''),'es') || a.nombre.localeCompare(b.nombre,'es'); },
+    espesor: function(a,b){ return espDe(a)-espDe(b) || a.nombre.localeCompare(b.nombre,'es'); },
+    reciente: function(a,b){ return (b.version||0)-(a.version||0); }
+  }[FIL.orden];
+  return out.sort(cmp);
+}
+function pintarStats(){
+  var it = CAT.items, n = function(f){ return it.filter(f).length; };
+  var def = [
+    ['Todo', it.length, function(){ FIL.tipo=''; FIL.acceso=''; }, FIL.tipo===''&&FIL.acceso===''],
+    ['Placas', n(function(i){return i.tipo==='placa';}), function(){ FIL.tipo='placa'; FIL.acceso=''; }, FIL.tipo==='placa'&&FIL.acceso===''],
+    ['Accesorios', n(function(i){return i.tipo==='accesorio';}), function(){ FIL.tipo='accesorio'; FIL.acceso=''; }, FIL.tipo==='accesorio'&&FIL.acceso===''],
+    ['Gratis', n(function(i){return i.acceso==='gratis';}), function(){ FIL.tipo=''; FIL.acceso='gratis'; }, FIL.acceso==='gratis'&&FIL.tipo===''],
+    ['Con licencia', n(function(i){return i.acceso!=='gratis';}), function(){ FIL.tipo=''; FIL.acceso='licencia'; }, FIL.acceso==='licencia'&&FIL.tipo==='']
+  ];
+  $('stats').innerHTML = def.map(function(d,i){ return '<div class="stat'+(d[3]?' on':'')+'" data-i="'+i+'"><b>'+d[1]+'</b><span>'+d[0]+'</span></div>'; }).join('');
+  document.querySelectorAll('#stats .stat').forEach(function(e){ e.onclick = function(){ def[+e.getAttribute('data-i')][2](); sincronizarControles(); pintarListado(); pintarStats(); pintarOpcionesFiltro(); }; });
+}
+function sincronizarControles(){
+  $('q').value = FIL.q; $('fTipo').value = FIL.tipo; $('fOrden').value = FIL.orden;
+  document.querySelectorAll('#segAcceso button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-v')===FIL.acceso); });
+  $('vTabla').classList.toggle('sec', FIL.vista!=='tabla'); $('vTarj').classList.toggle('sec', FIL.vista!=='tarjetas');
+}
+function hayFiltros(){ return !!(FIL.q||FIL.acceso||FIL.tipo||FIL.marca||FIL.esp!==''||FIL.cat); }
+
+function datosFila(it){
+  var d = it.datos||{}, medidas = it.tipo==='placa' && d.largo ? d.largo+'×'+d.ancho+' mm' : (d.unidad||'');
+  return { medidas: medidas, esp: espDe(it) ? espDe(it)+' mm' : '—' };
+}
+function pintarListado(){
+  var lista = filtrar();
+  $('resumenFiltro').innerHTML = 'Mostrando <b>'+lista.length+'</b> de '+CAT.items.length+(hayFiltros()?' · filtros activos':'');
+  $('btnLimpiarFiltros').style.display = hayFiltros() ? '' : 'none';
+  if(!lista.length){
+    $('listado').innerHTML = '<div class="tabla"><div class="vacio">'+(CAT.items.length?'Ningún contenido coincide con los filtros.':'Todavía no hay contenido. Pulsa «+ Agregar contenido» para subir el primero.')+'</div></div>';
+    return;
+  }
+  var acc = function(it){ return '<span class="tag '+(it.acceso==='gratis'?'t-gr':'t-li')+'">'+(it.acceso==='gratis'?'gratis':'licencia')+'</span>'; };
+  var tp = function(it){ return '<span class="tag '+(it.tipo==='placa'?'t-ti':'t-ac')+'">'+esc(it.tipo)+'</span>'; };
+  var botones = function(it){ return '<button class="sec mini" onclick="editar(\''+esc(it.id)+'\')">Editar</button> <button class="del mini" onclick="borrar(\''+esc(it.id)+'\')">Eliminar</button>'; };
+  if(FIL.vista==='tarjetas'){
+    $('listado').innerHTML = '<div class="rejilla">'+lista.map(function(it){ var f = datosFila(it);
+      return '<div class="tarj"><img class="mi" data-id="'+esc(it.id)+'" alt=""><div class="cuerpo"><div class="nom"><b>'+esc(it.nombre)+'</b><div class="hint">'+esc(it.id)+'</div></div>'
+        + '<div class="meta">'+tp(it)+acc(it)+(it.categoria?'<span class="tag t-ac" style="background:rgba(255,255,255,.07);color:var(--dim)">'+esc(it.categoria)+'</span>':'')+'</div>'
+        + '<div class="hint" style="margin:0">'+(it.marca?esc(it.marca)+' · ':'')+f.esp+(f.medidas?' · '+esc(f.medidas):'')+' · v'+it.version+'</div>'
+        + '<div class="btns">'+botones(it)+'</div></div></div>'; }).join('')+'</div>';
+  } else {
+    $('listado').innerHTML = '<div class="tabla"><table><thead><tr><th></th><th>Nombre</th><th>Tipo</th><th>Categoría</th><th>Marca</th><th>Espesor</th><th>Medidas</th><th>Acceso</th><th>Ver.</th><th></th></tr></thead><tbody>'
+      + lista.map(function(it){ var f = datosFila(it);
+        return '<tr><td><img class="mi" data-id="'+esc(it.id)+'" alt=""></td><td class="nom"><b>'+esc(it.nombre)+'</b><div class="hint">'+esc(it.id)+(it.datos&&it.datos.codigo?' · '+esc(it.datos.codigo):'')+'</div></td>'
+          + '<td>'+tp(it)+'</td><td>'+esc(it.categoria||'—')+'</td><td>'+esc(it.marca||'—')+'</td><td>'+f.esp+'</td><td>'+esc(f.medidas||'—')+'</td><td>'+acc(it)+'</td><td>v'+it.version+'</td>'
+          + '<td style="white-space:nowrap">'+botones(it)+'</td></tr>'; }).join('')
+      + '</tbody></table></div>';
+  }
+  cargarMiniaturas(lista);
+}
+function cargarMiniaturas(lista){
+  var ids = lista.filter(function(i){ return i.archivos && i.archivos.miniatura; }).map(function(i){ return i.id; });
+  if(!ids.length) return;
+  fetch('/api/descargar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:ids,archivo:'miniatura'})})
+    .then(function(r){ return r.json(); }).then(function(j){
+      document.querySelectorAll('img.mi').forEach(function(im){ var r=j.resultados&&j.resultados[im.getAttribute('data-id')]; if(r&&r.url) im.src=r.url; });
+    }).catch(function(){});
+}
+function pintar(){
+  $('verCat').textContent = 'v' + CAT.version; pintarRelease(); pintar3d();
+  pintarOpcionesFiltro(); pintarStats(); sincronizarControles(); pintarListado(); pintarAvisos();
+}
+
+/* Controles de filtro */
+$('q').oninput = function(){ FIL.q = this.value; pintarListado(); };
+document.querySelectorAll('#segAcceso button').forEach(function(b){ b.onclick = function(){ FIL.acceso = b.getAttribute('data-v'); sincronizarControles(); pintarListado(); pintarStats(); }; });
+$('fTipo').onchange = function(){ FIL.tipo = this.value; pintarListado(); pintarStats(); };
+$('fMarca').onchange = function(){ FIL.marca = this.value; pintarListado(); };
+$('fEsp').onchange = function(){ FIL.esp = this.value; pintarListado(); };
+$('fOrden').onchange = function(){ FIL.orden = this.value; pintarListado(); };
+$('vTabla').onclick = function(){ FIL.vista='tabla'; try{localStorage.setItem('adm_vista','tabla');}catch(e){} sincronizarControles(); pintarListado(); };
+$('vTarj').onclick = function(){ FIL.vista='tarjetas'; try{localStorage.setItem('adm_vista','tarjetas');}catch(e){} sincronizarControles(); pintarListado(); };
+$('btnLimpiarFiltros').onclick = function(){ FIL.q=''; FIL.acceso=''; FIL.tipo=''; FIL.marca=''; FIL.esp=''; FIL.cat=''; sincronizarControles(); pintarOpcionesFiltro(); pintarStats(); pintarListado(); };
+
+/* ── Avisos ── */
+function pintarAvisos(){
+  var a = CAT.avisos || [];
+  $('avisos').innerHTML = a.length ? a.map(function(x,i){
+    return '<div class="row" style="margin-bottom:8px;grid-template-columns:3fr 3fr auto"><input data-av="t" value="'+esc(x.texto)+'" placeholder="Texto"><input data-av="u" value="'+esc(x.url)+'" placeholder="https://… (opcional)"><button class="del" onclick="quitarAviso('+i+')">Quitar</button></div>';
+  }).join('') : '<div class="hint">No hay avisos. Pulsa «+ Aviso» para crear uno.</div>';
+}
+function leerAvisos(){
+  var out=[], t=document.querySelectorAll('[data-av=t]'), u=document.querySelectorAll('[data-av=u]');
+  for(var i=0;i<t.length;i++) out.push({ id:'a'+(i+1), texto:t[i].value, url:u[i].value });
+  return out;
+}
+function quitarAviso(i){ CAT.avisos = leerAvisos(); CAT.avisos.splice(i,1); pintarAvisos(); }
+$('btnAddAviso').onclick = function(){ CAT.avisos = leerAvisos(); if(CAT.avisos.length>=5) return aviso('Máximo 5 avisos','err'); CAT.avisos.push({texto:'',url:''}); pintarAvisos(); };
+$('btnGuardarAvisos').onclick = function(){ api('avisos',{avisos:leerAvisos()}).then(function(r){ if(r.estado===200){ aviso('Avisos guardados'); cargar(); } else aviso('No se pudo guardar','err'); }); };
+
+$('btnLogin').onclick = function(){
+  api('login',{password:$('pw').value}).then(function(r){ if(r.estado===200){ $('pw').value=''; cargar(); } else aviso(r.estado===429?'Demasiados intentos, espera unos minutos':'Contraseña incorrecta','err'); });
+};
+$('pw').onkeydown = function(e){ if(e.key==='Enter') $('btnLogin').click(); };
+$('btnSalir').onclick = function(){ api('logout',{}).then(function(){ mostrar(false); }); };
+
+/* ── Formulario ── */
+function tipoCambio(){
+  var placa = $('f-tipo').value==='placa';
+  $('datosPlaca').style.display = placa?'':'none'; $('datosAcc').style.display = placa?'none':'';
+  $('lblPrincipal').textContent = placa?'Archivo .skm':'Imagen del accesorio (.png / .jpg)';
+  $('f-principal').accept = placa?'.skm':'.png,.jpg,.jpeg';
+  $('boxMini').style.display = placa?'':'none';
+}
+$('f-tipo').onchange = tipoCambio;
+$('f-nombre').oninput = function(){ if(!$('f-id').readOnly) $('f-id').value = slug($('f-nombre').value); };
+function abrirForm(){ $('formWrap').classList.remove('oculto'); irTab('contenido'); $('formWrap').scrollIntoView({behavior:'smooth',block:'start'}); }
+function cerrarForm(){ limpiar(); $('formWrap').classList.add('oculto'); }
+$('btnNuevo').onclick = function(){ limpiar(); abrirForm(); };
+$('btnCerrarForm').onclick = cerrarForm;
+
+function limpiar(){
+  ['f-nombre','f-id','f-marca','f-cat','f-cod'].forEach(function(i){ $(i).value=''; });
+  $('f-id').readOnly=false; $('f-tipo').disabled=false; $('f-principal').value=''; $('f-mini').value=''; $('previa').style.display='none'; MINI_GEN=null;
+  $('tituloForm').textContent='Agregar contenido'; $('hintEditar').style.display='none'; tipoCambio();
+}
+$('btnLimpiar').onclick = limpiar;
+function editar(id){
+  var it = CAT.items.find(function(x){return x.id===id;}); if(!it) return;
+  limpiar();
+  $('f-nombre').value=it.nombre; $('f-id').value=it.id; $('f-id').readOnly=true; $('f-tipo').value=it.tipo; $('f-tipo').disabled=true;
+  $('f-acceso').value=it.acceso; $('f-marca').value=it.marca||''; $('f-cat').value=it.categoria||''; $('f-cod').value=(it.datos&&it.datos.codigo)||'';
+  if(it.tipo==='placa'){ var d=it.datos||{}; $('f-largo').value=d.largo||2440; $('f-ancho').value=d.ancho||1830; $('f-esp').value=d.espesor||18; $('f-veta').value=d.veta?'1':'0'; }
+  else { $('f-unidad').value=(it.datos&&it.datos.unidad)||'unidades'; }
+  tipoCambio(); $('tituloForm').textContent='Editando: '+it.nombre; $('hintEditar').style.display='block'; abrirForm();
+}
+function borrar(id){
+  if(!confirm('¿Eliminar "'+id+'" de la biblioteca? Los clientes que ya lo instalaron lo conservan.')) return;
+  api('eliminar',{id:id}).then(function(r){ if(r.estado===200){ aviso('Eliminado'); cargar(); } else aviso('No se pudo eliminar','err'); });
+}
+
+// Miniatura automática: extrae la imagen de la textura del .skm (es un ZIP) y la reduce a 192 px
+function miniaturaDesdeSkm(file){
+  return JSZip.loadAsync(file).then(function(zip){
+    var imgs = Object.keys(zip.files).filter(function(n){ return /\.(jpe?g|png)$/i.test(n) && !zip.files[n].dir; });
+    if(!imgs.length) throw new Error('El .skm no trae imagen de textura');
+    return Promise.all(imgs.map(function(n){ return zip.files[n].async('uint8array').then(function(b){ return {n:n,b:b}; }); }));
+  }).then(function(lista){
+    lista.sort(function(a,b){ return b.b.length - a.b.length; });
+    var mime = /\.png$/i.test(lista[0].n) ? 'image/png' : 'image/jpeg';
+    return new Promise(function(ok, mal){
+      var url = URL.createObjectURL(new Blob([lista[0].b],{type:mime})), im = new Image();
+      im.onload = function(){
+        var c = document.createElement('canvas'); c.width = 192; c.height = 192;
+        var s = Math.min(im.width, im.height), sx = (im.width - s)/2, sy = (im.height - s)/2;
+        c.getContext('2d').drawImage(im, sx, sy, s, s, 0, 0, 192, 192);
+        URL.revokeObjectURL(url); c.toBlob(function(b){ b ? ok(b) : mal(new Error('No se pudo crear la miniatura')); }, 'image/png');
+      };
+      im.onerror = function(){ mal(new Error('No se pudo leer la textura del .skm')); };
+      im.src = url;
+    });
+  });
+}
+$('f-principal').onchange = function(){
+  MINI_GEN = null; $('previa').style.display='none';
+  var f = this.files[0]; if(!f || $('f-tipo').value!=='placa') return;
+  miniaturaDesdeSkm(f).then(function(b){ MINI_GEN = b; $('previa').src = URL.createObjectURL(b); $('previa').style.display='block'; }).catch(function(e){ aviso(e.message,'err'); });
+};
+
+// Huella SHA-256 calculada aquí (en tu navegador) para que el servidor no gaste CPU con archivos grandes.
+function sha256Hex(blob){
+  return blob.arrayBuffer().then(function(ab){ return crypto.subtle.digest('SHA-256', ab); }).then(function(d){
+    return Array.prototype.map.call(new Uint8Array(d), function(x){ return ('0'+x.toString(16)).slice(-2); }).join('');
+  });
+}
+function subirArchivo(id, archivo, nombre, blob){
+  return api('subida',{id:id,archivo:archivo,nombre:nombre}).then(function(r){
+    if(r.estado!==200) throw new Error('No se pudo preparar la subida de '+nombre);
+    return fetch(r.json.url,{method:'PUT',body:blob}).then(function(p){
+      if(!p.ok) throw new Error('Falló la subida de '+nombre+' (HTTP '+p.status+'). Pulsa «Diagnóstico» para ver la causa.');
+      return sha256Hex(blob).then(function(h){ return { key: r.json.key, sha256: h }; });
+    }, function(){ throw new Error('No se pudo subir '+nombre+' al almacenamiento (Failed to fetch). Pulsa «Diagnóstico» arriba a la derecha para ver la causa.'); });
+  });
+}
+$('btnPublicar').onclick = function(){
+  var tipo=$('f-tipo').value, id=$('f-id').value.trim(), nombre=$('f-nombre').value.trim();
+  if(!id||!nombre) return aviso('Falta el nombre','err');
+  var existe = CAT.items.find(function(x){return x.id===id;});
+  var principal = $('f-principal').files[0];
+  if(!existe && !principal) return aviso('Falta el archivo principal','err');
+  var btn=$('btnPublicar'); btn.disabled=true; btn.textContent='Subiendo…';
+  var archivos={}, seguir=Promise.resolve();
+  if(principal){
+    var nombreP = principal.name.replace(/[^A-Za-z0-9._-]/g,'_');
+    seguir = seguir.then(function(){ return subirArchivo(id,'principal',nombreP,principal); }).then(function(k){ archivos.principal=k; });
+    if(tipo==='placa'){
+      var miniF = $('f-mini').files[0];
+      var blob = miniF || MINI_GEN;
+      if(blob){
+        var nm = miniF ? miniF.name.replace(/[^A-Za-z0-9._-]/g,'_') : (id+'.png');
+        seguir = seguir.then(function(){ return subirArchivo(id,'miniatura',nm,blob); }).then(function(k){ archivos.miniatura=k; });
+      }
+    }
+  } else if(tipo==='placa' && $('f-mini').files[0]){
+    var mf=$('f-mini').files[0];
+    seguir = seguir.then(function(){ return subirArchivo(id,'miniatura',mf.name.replace(/[^A-Za-z0-9._-]/g,'_'),mf); }).then(function(k){ archivos.miniatura=k; });
+  }
+  seguir.then(function(){
+    var datos = tipo==='placa'
+      ? { codigo:$('f-cod').value, largo:+$('f-largo').value, ancho:+$('f-ancho').value, espesor:+$('f-esp').value, veta:$('f-veta').value==='1' }
+      : { codigo:$('f-cod').value, unidad:$('f-unidad').value };
+    return api('publicar',{ id:id, tipo:tipo, nombre:nombre, marca:$('f-marca').value, categoria:$('f-cat').value, acceso:$('f-acceso').value, datos:datos, archivos:archivos });
+  }).then(function(r){
+    if(r.estado!==200) throw new Error('No se pudo publicar: '+(r.json.error||r.estado));
+    aviso('Publicado ✓ (versión '+r.json.version+')'); cerrarForm(); return cargar();
+  }).catch(function(e){ aviso(e.message,'err'); }).then(function(){ btn.disabled=false; btn.textContent='Publicar'; });
+};
+
+/* ── Actualización Sistemas ── */
+function pintarRelease(){
+  var r = CAT.release;
+  $('relActual').innerHTML = r ? 'Publicada: <b>v'+esc(r.version)+'</b> · '+(r.bytes/1048576).toFixed(1)+' MB'+(r.obligatoria?' · importante':'')+(r.incluye_dll?' · incluye protector.dll':'')+'<br><span class="hint">'+esc(r.notas||'')+'</span>' : 'Todavía no hay ninguna actualización publicada.';
+}
+$('btnRelease').onclick = function(){
+  var ver = $('r-ver').value.trim(), f = $('r-file').files[0];
+  if(!/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ver)) return aviso('La versión debe ser como 2.2.1','err');
+  if(!f) return aviso('Falta el archivo .rbz','err');
+  var btn = $('btnRelease'); btn.disabled = true; btn.textContent = 'Subiendo…';
+  var nombre = f.name.replace(/[^A-Za-z0-9._-]/g,'_'), hashRel = '';
+  api('subida_release',{version:ver,nombre:nombre}).then(function(r){
+    if(r.estado!==200) throw new Error('No se pudo preparar la subida');
+    return fetch(r.json.url,{method:'PUT',body:f}).then(function(p){ if(!p.ok) throw new Error('Falló la subida (HTTP '+p.status+'). Pulsa «Diagnóstico» para ver la causa.'); return sha256Hex(f).then(function(h){ hashRel = h; return r.json.key; }); }, function(){ throw new Error('No se pudo subir el archivo al almacenamiento (Failed to fetch). Pulsa «Diagnóstico» arriba a la derecha para ver la causa.'); });
+  }).then(function(key){
+    return api('publicar_release',{version:ver,notas:$('r-notas').value,obligatoria:$('r-obl').checked,key:key,sha256:hashRel});
+  }).then(function(r){
+    if(r.estado!==200){
+      var m = { rbz_version_distinta:'La versión que escribiste no coincide con PLUGIN_VERSION del .rbz ('+((r.json.detalle||'').split(':')[1]||'?')+')', rbz_sin_cargador:'El .rbz no trae "Avich sistemas.rb"', rbz_archivos_ajenos:'El .rbz trae archivos fuera de la carpeta de AVICH', rbz_invalido:'El archivo no es un .rbz válido', rbz_grande:'El .rbz pesa más de 80 MB' };
+      throw new Error(m[r.json.error] || ('No se pudo publicar: '+r.json.error));
+    }
+    var adv = (r.json.advertencias||[]).join(' · ');
+    aviso('Publicada v'+ver+(adv?' — Ojo: '+adv:''), adv?'err':'ok'); $('r-ver').value=''; $('r-file').value=''; $('r-notas').value=''; $('r-obl').checked=false; return cargar();
+  }).catch(function(e){ aviso(e.message,'err'); }).then(function(){ btn.disabled=false; btn.textContent='Publicar actualización'; });
+};
+$('btnQuitarRelease').onclick = function(){
+  if(!confirm('¿Quitar la actualización publicada? Los clientes dejarán de verla.')) return;
+  api('quitar_release',{}).then(function(){ aviso('Quitada'); cargar(); });
+};
+
+/* ── Actualización AVICH 3D ── */
+function pintar3d(){
+  var r = CAT.release3d;
+  $('rel3Actual').innerHTML = r ? 'Publicada: <b>v'+esc(r.version)+'</b> · '+(r.bytes/1048576).toFixed(1)+' MB<br><span class="hint">'+esc(r.notas||'')+'</span>' : 'Todavía no hay ninguna publicada desde aquí (se usan las variables AVICH_* de Cloudflare, si existen).';
+}
+$('btnRel3').onclick = function(){
+  var ver = $('r3-ver').value.trim(), f = $('r3-file').files[0];
+  if(!/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(ver)) return aviso('La versión debe ser como 1.0.7','err');
+  if(!f) return aviso('Falta el archivo .rbz','err');
+  var btn = $('btnRel3'); btn.disabled = true; btn.textContent = 'Subiendo…';
+  var nombre = f.name.replace(/[^A-Za-z0-9._-]/g,'_'), hash3 = '';
+  api('subida_3d',{version:ver,nombre:nombre}).then(function(r){
+    if(r.estado!==200) throw new Error('No se pudo preparar la subida');
+    return fetch(r.json.url,{method:'PUT',body:f}).then(function(p){ if(!p.ok) throw new Error('Falló la subida (HTTP '+p.status+'). Pulsa «Diagnóstico» para ver la causa.'); return sha256Hex(f).then(function(h){ hash3 = h; return r.json.key; }); }, function(){ throw new Error('No se pudo subir el archivo al almacenamiento (Failed to fetch). Pulsa «Diagnóstico» arriba a la derecha para ver la causa.'); });
+  }).then(function(key){
+    return api('publicar_3d',{version:ver,notas:$('r3-notas').value,key:key,sha256:hash3});
+  }).then(function(r){
+    if(r.estado!==200){
+      var m = { rbz_version_distinta:'La versión que escribiste no coincide con VERSION de avich_3d.rb ('+((r.json.detalle||'').split(':')[1]||'?')+')', rbz_sin_cargador:'El .rbz no trae avich_3d.rb', rbz_archivos_ajenos:'El .rbz trae archivos fuera de avich_3d.rb y la carpeta avich_3d/', rbz_invalido:'El archivo no es un .rbz válido', rbz_grande:'El .rbz pesa más de 80 MB' };
+      throw new Error(m[r.json.error] || ('No se pudo publicar: '+r.json.error));
+    }
+    aviso('Publicado AVICH 3D v'+ver+' ✓'); $('r3-ver').value=''; $('r3-file').value=''; $('r3-notas').value=''; return cargar();
+  }).catch(function(e){ aviso(e.message,'err'); }).then(function(){ btn.disabled=false; btn.textContent='Publicar AVICH 3D'; });
+};
+$('btnQuitar3').onclick = function(){
+  if(!confirm('¿Quitar la versión publicada de AVICH 3D? Se usarán las variables AVICH_* si existen.')) return;
+  api('quitar_3d',{}).then(function(){ aviso('Quitada'); cargar(); });
+};
+
+/* ── Licencias (ventas manuales, pruebas y soporte) ── */
+var LICS = [];
+function fecha(ms){ return new Date(ms).toLocaleDateString('es-PE'); }
+function venceTxt(l){ return l.periodo==='vitalicio' ? 'Vitalicia' + (l.actualizacionesHasta ? ' (act. hasta '+fecha(l.actualizacionesHasta)+')' : '') : fecha(l.expira); }
+function prodTxt(p){ return p==='sistemas' ? 'AVICH Sistemas' : 'AVICH 3D'; }
+function licTxt(l){ return l.clave+'\n'+prodTxt(l.producto)+' · '+l.plan+' ('+l.periodo+') · '+l.email+'\nestado: '+l.estado+' · vigente: '+(l.vigente?'sí':'no ('+l.motivo+')')+' · vence: '+venceTxt(l)+'\nequipos '+l.equipos.length+'/'+l.maxEquipos+(l.equipos.length?': '+l.equipos.map(function(e){return e.nombre+' ['+e.id+']';}).join(', '):''); }
+function mensajeLic(l){
+  var enlace = location.origin + '/api/bajar?clave=' + encodeURIComponent(l.clave);
+  var pasos = l.producto==='sistemas'
+    ? '2) Instálalo y ábrelo; en la ventana de licencia pega tu clave y pulsa Activar.'
+    : '2) En SketchUp: Ventana → Administrador de extensiones → Instalar extensión, y elige el archivo .rbz que bajaste.\n3) Abre SketchUp, pulsa el primer botón de la barra «Avich 3D» y pega tu clave para activar.';
+  return '¡Hola! Gracias por tu compra de ' + prodTxt(l.producto) + ' 🙌\n\n'
+    + 'Tu clave de licencia:\n' + l.clave + '\n\n'
+    + 'Plan ' + l.plan + ' · ' + l.maxEquipos + (l.maxEquipos===1?' computadora':' computadoras') + ' · ' + (l.periodo==='vitalicio' ? 'licencia vitalicia' : 'vigente hasta el ' + fecha(l.expira)) + '\n\n'
+    + '1) Descarga el instalador:\n' + enlace + '\n' + pasos + '\n\n'
+    + 'Cualquier duda me escribes por aquí.';
+}
+function mostrarMensaje(l){
+  var m = mensajeLic(l); $('licMsg').value = m; $('licListo').classList.remove('oculto');
+  $('btnLicWa').href = 'https://wa.me/?text=' + encodeURIComponent(m);
+  $('licListo').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function pintarEquipos(l){
+  $('licEquipos').innerHTML = '<div class="bloque"><h3>Equipos activados ('+l.equipos.length+'/'+l.maxEquipos+')</h3>'
+    + (l.equipos.length ? l.equipos.map(function(e){ return '<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)"><span style="flex:1">'+esc(e.nombre||'(sin nombre)')+' <span class="hint">['+esc(e.id)+']</span></span><button class="del mini" onclick="licQuitarEquipo(\''+esc(l.clave)+'\',\''+esc(e.id)+'\')">Quitar</button></div>'; }).join('') : '<div class="hint">Ninguno todavía.</div>')
+    + '<div style="margin-top:10px;display:flex;gap:8px;align-items:center"><span class="hint" style="margin:0">Equipos permitidos:</span><input id="licNEq" type="number" min="1" max="50" value="'+l.maxEquipos+'" style="width:80px"><button class="sec mini" onclick="licCambiarEquipos(\''+esc(l.clave)+'\')">Guardar</button></div></div>';
+}
+function licRes(r){
+  if(r.estado!==200){ $('licOut').textContent='Error: '+(r.json.error||r.estado); $('licEquipos').innerHTML=''; return null; }
+  var l = r.json.licencia; $('licOut').textContent = licTxt(l); $('licClave').value = l.clave; pintarEquipos(l); return l;
+}
+function licFiltrada(){
+  var q = norm($('licQ').value).trim(), fp = $('licFP').value, fe = $('licFE').value, ahora = Date.now();
+  return LICS.filter(function(l){
+    if(fp && l.producto!==fp) return false;
+    if(q && norm(l.email+' '+l.clave).indexOf(q)<0) return false;
+    if(fe==='vigente' && !l.vigente) return false;
+    if(fe==='vencida' && !(l.estado!=='revocada' && !l.vigente)) return false;
+    if(fe==='revocada' && l.estado!=='revocada') return false;
+    if(fe==='vence' && !(l.vigente && l.periodo!=='vitalicio' && l.expira-ahora < 7*86400000)) return false;
+    return true;
+  });
+}
+function etiquetaEstado(l){
+  if(l.estado==='revocada') return '<span class="tag" style="background:rgba(239,83,80,.15);color:var(--red)">revocada</span>';
+  if(!l.vigente) return '<span class="tag t-li">vencida</span>';
+  return '<span class="tag t-gr">'+(l.estado==='activa'?'vigente':esc(l.estado))+'</span>';
+}
+function pintarLics(){
+  var lista = licFiltrada();
+  $('licTotal').textContent = '(' + lista.length + (lista.length!==LICS.length ? ' de '+LICS.length : '') + ')';
+  $('licTbody').innerHTML = lista.length ? lista.map(function(l){
+    var c = esc(l.clave);
+    return '<tr><td class="nom"><b>'+esc(l.email)+'</b><div class="hint" style="font-family:ui-monospace,monospace">'+c+'</div></td><td>'+prodTxt(l.producto)+'</td><td>'+esc(l.plan)+'</td><td>'+l.equipos.length+'/'+l.maxEquipos+'</td><td>'+esc(venceTxt(l))+'</td><td>'+etiquetaEstado(l)+'</td>'
+      + '<td style="white-space:nowrap"><button class="sec mini" onclick="licDetalle(\''+c+'\')">Detalle</button> <button class="sec mini" onclick="licMensajeDe(\''+c+'\')">Mensaje</button> <button class="sec mini" onclick="licExtender(\''+c+'\',30)">+30 d</button> <button class="sec mini" onclick="licExtender(\''+c+'\',365)">+1 año</button> '
+      + (l.estado==='revocada' ? '<button class="sec mini" onclick="licReactivar(\''+c+'\')">Reactivar</button>' : '<button class="del mini" onclick="licRevocar(\''+c+'\')">Revocar</button>')+'</td></tr>';
+  }).join('') : '<tr><td colspan="7" class="hint">'+(LICS.length?'Ninguna licencia coincide con los filtros.':'Todavía no hay licencias.')+'</td></tr>';
+}
+function cargarLics(){
+  return api('licencia_lista',{}).then(function(r){
+    if(r.estado!==200){ $('licTbody').innerHTML='<tr><td colspan="7" class="hint">No se pudo cargar la lista ('+esc(r.json.error||r.estado)+').</td></tr>'; return; }
+    LICS = r.json.licencias || []; pintarLics();
+  });
+}
+function licPorClave(c){ return LICS.find(function(l){ return l.clave===c; }); }
+function licDetalle(c){ api('licencia_ver',{clave:c}).then(function(r){ licRes(r); $('licOut').scrollIntoView({behavior:'smooth',block:'center'}); }); }
+function licMensajeDe(c){ var l = licPorClave(c); if(l){ mostrarMensaje(l); irTab('licencias'); window.scrollTo({top:0,behavior:'smooth'}); } }
+function licExtender(c,d){
+  var l = licPorClave(c); if(!confirm('¿Sumar '+d+' días a '+(l?l.email:c)+(l&&l.periodo==='vitalicio'?' (en una vitalicia se extienden las actualizaciones)':'')+'?')) return;
+  api('licencia_extender',{clave:c,dias:d}).then(function(r){ if(r.estado===200){ aviso('Extendida hasta '+venceTxt(r.json.licencia)); cargarLics(); } else aviso('No se pudo extender','err'); });
+}
+function licRevocar(c){ if(!confirm('¿Revocar esta licencia? El cliente dejará de poder usarla.')) return; api('licencia_revocar',{clave:c}).then(function(r){ if(r.estado===200){ aviso('Revocada'); cargarLics(); } else aviso('No se pudo revocar','err'); }); }
+function licReactivar(c){ api('licencia_reactivar',{clave:c}).then(function(r){ if(r.estado===200){ aviso('Reactivada'); cargarLics(); } else aviso('No se pudo reactivar','err'); }); }
+function licQuitarEquipo(c,e){ if(!confirm('¿Quitar este equipo? El cliente podrá activar otro.')) return; api('licencia_quitar_equipo',{clave:c,equipo:e}).then(function(r){ licRes(r); cargarLics(); }); }
+function licCambiarEquipos(c){ api('licencia_equipos',{clave:c,maxEquipos:$('licNEq').value}).then(function(r){ if(licRes(r)) aviso('Equipos permitidos actualizados'); cargarLics(); }); }
+
+$('licDur').onchange = function(){ $('licDiasBox').style.display = this.value==='otro' ? '' : 'none'; };
+$('btnLicCrear').onclick = function(){
+  var dur = $('licDur').value, vit = dur==='vitalicio';
+  var dias = dur==='otro' ? $('licDias').value : (vit ? 1 : dur);
+  api('licencia_crear',{email:$('licEmail').value,producto:$('licProd').value,plan:$('licPlan').value,maxEquipos:$('licEq').value,dias:dias,vitalicio:vit}).then(function(r){
+    var l = licRes(r); if(!l) return aviso('No se pudo crear: '+(r.json.error||r.estado),'err');
+    aviso('Licencia creada ✓'); mostrarMensaje(l); cargarLics();
+  });
+};
+$('btnLicCopiar').onclick = function(){
+  var t = $('licMsg'); t.select();
+  (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(function(){ aviso('Mensaje copiado'); }, function(){ try{ document.execCommand('copy'); aviso('Mensaje copiado'); }catch(e){ aviso('Copia el texto a mano','err'); } });
+};
+$('btnLicVer').onclick = function(){ api('licencia_ver',{clave:$('licClave').value}).then(licRes); };
+$('btnLicMsg').onclick = function(){ api('licencia_ver',{clave:$('licClave').value}).then(function(r){ var l = licRes(r); if(l) mostrarMensaje(l); }); };
+$('btnLicRev').onclick = function(){ if(!confirm('¿Revocar esta licencia?')) return; api('licencia_revocar',{clave:$('licClave').value}).then(function(r){ licRes(r); cargarLics(); }); };
+$('btnLicRecargar').onclick = cargarLics;
+$('licQ').oninput = pintarLics; $('licFP').onchange = pintarLics; $('licFE').onchange = pintarLics;
+
+/* ── Diagnóstico: revisa variables, conexión del servidor con R2, la firma y el CORS desde ESTE navegador ── */
+$('btnDiag').onclick = function(){
+  var card = $('diagCard'), out = $('diagTxt'); card.classList.remove('oculto'); out.textContent = 'Revisando…'; card.scrollIntoView({behavior:'smooth'});
+  var lineas = [];
+  function ok(t){ lineas.push('✅ ' + t); } function mal(t){ lineas.push('❌ ' + t); } function nota(t){ lineas.push('⚠️ ' + t); }
+  api('diagnostico', {}).then(function(r){
+    if(r.estado !== 200){ out.textContent = '❌ No se pudo ejecutar el diagnóstico (' + r.estado + ').'; return; }
+    var d = r.json;
+    if(d.faltan.length) mal('Faltan variables de entorno en Cloudflare Pages: ' + d.faltan.join(', ') + '. Agrégalas en Settings → Variables and Secrets (Production) y haz un deploy nuevo (commit nuevo).'); else ok('Variables de entorno: todas están.');
+    d.avisos.forEach(function(a){ nota(a); });
+    if(d.firma.ok) ok('Clave de firma: válida.'); else mal('SIGNING_PRIVATE_KEY no sirve' + (d.firma.detalle ? ' (' + d.firma.detalle + ')' : '') + '. Debe ser el contenido COMPLETO de SIGNING_PRIVATE_KEY-una-linea.txt.');
+    if(d.almacen.ok) ok('El servidor sí puede escribir y leer en el almacenamiento (' + d.almacenamiento.toUpperCase() + ').');
+    else mal('El servidor NO puede usar el almacenamiento: ' + d.almacen.detalle + '\nRevisa R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY y R2_BUCKET (y que el token tenga permiso Object Read & Write sobre ese bucket).');
+    if(!d.url){ lineas.push('— No se pudo probar el CORS porque falta lo anterior.'); out.textContent = lineas.join('\n'); return; }
+    out.textContent = lineas.join('\n') + '\n⏳ Probando subida desde este navegador (CORS)…';
+    return fetch(d.url, { method:'PUT', body:'ok' }).then(function(p){
+      if(p.ok) ok('Subida desde el navegador: funciona (CORS bien). Ya puedes publicar contenido.');
+      else mal('R2 rechazó la subida del navegador (HTTP ' + p.status + '). Revisa que el token tenga permiso Object Read & Write sobre el bucket.');
+    }).catch(function(){
+      mal('El navegador no pudo subir a R2 («Failed to fetch»): casi seguro es el CORS del bucket.\nEn Cloudflare → R2 → tu bucket → Settings → CORS Policy debe haber una regla con\nAllowedOrigins: ["' + location.origin + '"]  (exacto, con https y sin "/" al final)\nAllowedMethods: ["PUT","GET"]   AllowedHeaders: ["*"]\nGuarda, espera un minuto y vuelve a pulsar Diagnóstico.');
+    }).then(function(){ out.textContent = lineas.join('\n'); });
+  }).catch(function(){ out.textContent = '❌ No se pudo conectar con el servidor.'; });
+};
+
+try{ var v = localStorage.getItem('adm_vista'); if(v==='tarjetas'||v==='tabla') FIL.vista = v; }catch(e){}
+try{ var t = sessionStorage.getItem('adm_tab'); if(t) irTab(t); }catch(e){}
+tipoCambio(); cargar();
+</script>
+</body>
+</html>
