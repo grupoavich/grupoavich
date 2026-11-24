@@ -1,4 +1,4 @@
-// POST /api/admin?accion=login|logout|lista|diagnostico|subida|publicar|eliminar|avisos|subida_release|publicar_release|quitar_release|subida_3d|publicar_3d|quitar_3d|licencia_crear|licencia_ver|licencia_revocar|licencia_quitar_equipo
+// POST /api/admin?accion=login|logout|lista|diagnostico|subida|publicar|eliminar|avisos|subida_release|publicar_release|quitar_release|subida_3d|publicar_3d|quitar_3d|licencia_crear|licencia_ver|licencia_lista|licencia_extender|licencia_reactivar|licencia_equipos|licencia_revocar|licencia_quitar_equipo
 // (todo menos login/logout pide sesión)
 import { leerJSON, json, ip } from '../_lib/sistemas/h.js';
 import { permitir } from '../_lib/sistemas/limite.js';
@@ -66,19 +66,50 @@ export async function onRequest({ request, env }) {
     // ---- Licencias (crear de prueba / consultar / revocar / quitar equipo)
     if (accion && accion.indexOf('licencia_') === 0) {
       if (request.method !== 'POST') return json({ error: 'metodo' }, 405);
-      const vista = (l) => ({ clave: l.clave, producto: L.productoDe(l), email: l.email, plan: l.plan, periodo: l.periodo, estado: l.estado, maxEquipos: l.maxEquipos, expira: l.expira, vigente: L.evaluar(env, l).valida, motivo: L.evaluar(env, l).motivo, equipos: (l.equipos || []).map((e) => ({ id: e.id, nombre: e.nombre })) });
+      const vista = (l) => ({ clave: l.clave, producto: L.productoDe(l), email: l.email, plan: l.plan, periodo: l.periodo, estado: l.estado, maxEquipos: l.maxEquipos, expira: l.expira, vigente: L.evaluar(env, l).valida, motivo: L.evaluar(env, l).motivo, equipos: (l.equipos || []).map((e) => ({ id: e.id, nombre: e.nombre })), creada: l.creada || null, actualizacionesHasta: l.actualizaciones_hasta || null });
       if (accion === 'licencia_crear') {
         const email = limpia(b.email, 120).toLowerCase(), plan = limpia(b.plan, 40) || 'Prueba';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'correo_invalido' }, 400);
-        const dias = num(b.dias, 1, 3650), maxEq = num(b.maxEquipos, 1, 50);
+        const vitalicio = b.vitalicio === true || b.vitalicio === 'true';
+        const dias = vitalicio ? 1 : num(b.dias, 1, 3650), maxEq = num(b.maxEquipos, 1, 50);
         if (dias === null || maxEq === null) return json({ error: 'numeros_invalidos' }, 400);
-        const lic = { clave: L.nuevaClave(), producto: b.producto === 'sistemas' ? 'sistemas' : '3d', email, plan, periodo: 'manual', maxEquipos: maxEq, estado: 'activa', suscripcion: null, cliente: null, expira: Date.now() + dias * L.DIA, equipos: [], creada: Date.now() };
+        const lic = { clave: L.nuevaClave(), producto: b.producto === 'sistemas' ? 'sistemas' : '3d', email, plan, periodo: vitalicio ? 'vitalicio' : 'manual', maxEquipos: maxEq, estado: 'activa', suscripcion: null, cliente: null, expira: vitalicio ? L.FUTURO_LEJANO : Date.now() + dias * L.DIA, equipos: [], creada: Date.now() };
+        if (vitalicio) lic.actualizaciones_hasta = Date.now() + 366 * L.DIA;   // igual que una compra vitalicia: acceso permanente + 12 meses de actualizaciones
         await L.guardar(env, lic);
         return json({ ok: true, licencia: vista(lic) });
+      }
+      if (accion === 'licencia_lista') {   // todas las licencias (para la tabla del panel)
+        const claves = []; let cur = '0', vueltas = 0;
+        do {
+          const r = await redis(env, 'SCAN', cur, 'MATCH', 'lic:*', 'COUNT', '500');
+          cur = String(r[0]); for (const k of r[1]) claves.push(k); vueltas++;
+        } while (cur !== '0' && claves.length < 3000 && vueltas < 50);
+        const lics = [];
+        for (let i = 0; i < claves.length; i += 100) {
+          const vals = await redis(env, 'MGET', ...claves.slice(i, i + 100));
+          for (const v of vals || []) { if (!v) continue; try { lics.push(JSON.parse(v)); } catch (e) { /* registro dañado: se omite */ } }
+        }
+        lics.sort((a, c) => (c.creada || 0) - (a.creada || 0));
+        return json({ ok: true, total: lics.length, licencias: lics.slice(0, 1000).map(vista) });
       }
       const lic = await L.obtener(env, b.clave);
       if (!lic) return json({ error: 'no_existe' }, 404);
       if (accion === 'licencia_ver') return json({ ok: true, licencia: vista(lic) });
+      if (accion === 'licencia_extender') {   // suma días (o, en una vitalicia, de actualizaciones) y la deja activa
+        const d = num(b.dias, 1, 3650);
+        if (d === null) return json({ error: 'numeros_invalidos' }, 400);
+        const ahora = Date.now();
+        if (lic.periodo === 'vitalicio') lic.actualizaciones_hasta = Math.max(Number(lic.actualizaciones_hasta || 0), ahora) + d * L.DIA;
+        else lic.expira = Math.max(Number(lic.expira || 0), ahora) + d * L.DIA;
+        if (lic.estado !== 'revocada') lic.estado = 'activa';
+        await L.guardar(env, lic); return json({ ok: true, licencia: vista(lic) });
+      }
+      if (accion === 'licencia_reactivar') { lic.estado = 'activa'; await L.guardar(env, lic); return json({ ok: true, licencia: vista(lic) }); }
+      if (accion === 'licencia_equipos') {
+        const n = num(b.maxEquipos, 1, 50);
+        if (n === null) return json({ error: 'numeros_invalidos' }, 400);
+        lic.maxEquipos = n; await L.guardar(env, lic); return json({ ok: true, licencia: vista(lic) });
+      }
       if (accion === 'licencia_revocar') { lic.estado = 'revocada'; await L.guardar(env, lic); return json({ ok: true, licencia: vista(lic) }); }
       if (accion === 'licencia_quitar_equipo') { lic.equipos = (lic.equipos || []).filter((e) => e.id !== b.equipo); await L.guardar(env, lic); return json({ ok: true, licencia: vista(lic) }); }
       return json({ error: 'accion' }, 400);
